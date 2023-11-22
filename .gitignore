@@ -1,0 +1,7 @@
+.venv/Include
+.venv/Lib
+.venv/Scripts
+.venv/pyvenv.cfg
+.venv/Files/Additional/__pycache__
+.venv/Files/Drone/__pycache__
+.venv/Files/Drone_States/__pycache__
