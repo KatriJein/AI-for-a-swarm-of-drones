@@ -1,10 +1,10 @@
 import turtle, random
-from shapely.geometry import Polygon, Point
+from shapely.geometry import Polygon
 
-WIDTH, HEIGHT = 1000, 600
+WIDTH, HEIGHT = 1000, 700
 
 screen = turtle.Screen()
-screen.setup(WIDTH + 4, HEIGHT + 8)  # запас на границы
+screen.setup(WIDTH + 4, HEIGHT)  # запас на границы
 screen.setworldcoordinates(0, 0, WIDTH, HEIGHT)
 screen.title("Управление дронами")
 koef = 10
@@ -17,6 +17,8 @@ class Order:
         self.weight = weight 
         self.dest_x = destination_x
         self.dest_y = destination_y
+        # self.polygon = Polygon([[self.x - 11, self.y + 11], [self.x + 11, self.y + 11], 
+        #                         [self.x + 11, self.y - 11], [self.x - 11, self.y - 11]])
 
     def draw(self):
             order_t = turtle.Turtle()
@@ -66,11 +68,15 @@ def generate_new_order(start_x, start_y, dest_x, dest_y):
     orders.append(new_order)
     new_order.draw()
     
+def create_polygon_for_point(x, y):
+    return Polygon([[x - 11, y + 11], [x + 11, y + 11], 
+                        [x + 11, y - 11], [x - 11, y - 11]])
+
 def find_max_index():
     return max(order.id for order in orders) + 1 if orders else 0
 
 def is_intersects_any_polygon(polygons, x, y):
-    return any(p.polygon.intersects(Point(x, y)) for p in polygons)
+    return any(p.polygon.intersects(create_polygon_for_point(x, y)) for p in polygons)
 
 current_order = False
 curr_x, curr_y = 0, 0
@@ -97,6 +103,7 @@ barriers = []
 barriers.append(Barrier(10, 10, 10, 7, 6))
 barriers.append(Barrier(60, 50, 10, 10, 6))
 draw_items(barriers)
+draw_items(orders)
 
 turtle.onscreenclick(on_click)
 
