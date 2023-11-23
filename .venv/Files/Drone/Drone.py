@@ -33,6 +33,7 @@ class DroneHive:
         best_candidate = min(candidates, key=lambda d: d.get_id())
         best_candidate.take_order(order)
 
+
 class Drone:
     def __init__(self, width=WIDTH, length=LENGTH, flight_altitude=FLIGHT_ALTITUDE):
         self.__id = ID_GENERATOR.get_id()
@@ -58,6 +59,20 @@ class Drone:
     def draw(self):
         self.__turtle.goto(self.__location.get_position())
 
+    def act(self):
+        self.__state.act(self)
+
+    def take_energy(self):
+        self.__battery.take_energy(self.__state.take_energy())
+
+    def distance_to(self, target):
+        return 0
+
+    def wait(self):
+        self.__state = Await_State.AwaitState()
+        self.__turtle.up()
+        self.__turtle.color(*COLOR_GENERATOR.get_inactive_state_color())
+
     def fly_to(self, target):
         self.__state = Flying_State.FlyingState(target)
         self.__turtle.color(self.__active_color)
@@ -67,43 +82,28 @@ class Drone:
         self.__state = Carrying_State.CarryingState(shipment, target)
         self.__turtle.down()
 
-    def wait(self):
-        self.__state = Await_State.AwaitState()
-        self.__turtle.up()
-        self.__turtle.color(*COLOR_GENERATOR.get_inactive_state_color())
+    def view_order(self, order):
+        return self.can_take_order(order)
 
-    def act(self):
-        self.__state.act(self)
+    def take_order(self, order):
+        self.__order_id = order.get_id()
+        self.fly_to(order)
 
     def get_location(self):
         return self.__location
-
-    def take_energy(self):
-        self.__battery.take_energy(self.__state.take_energy())
-
-    def is_low_energy(self):
-        return self.__battery.is_low()
     
     def get_state(self):
         return self.__state
     
     def get_id(self):
         return self.__id
-    
-    def distance_to(self, target):
-        return 0
 
-    def view_order(self, order):
-        return self.can_take_order(order)
+    def is_low_energy(self):
+        return self.__battery.is_low()
     
     def can_take_order(self, order):
         return True
     
-    def take_order(self, order):
-        self.__order_id = order.get_id()
-        self.fly_to(order)
-
-
     def set_state(self, state):
         if isinstance(state, (Await_State.AwaitState, Flying_State.FlyingState, Carrying_State.CarryingState)):
             self.__state = state
