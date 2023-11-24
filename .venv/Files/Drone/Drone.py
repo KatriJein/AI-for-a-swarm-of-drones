@@ -89,6 +89,9 @@ class Drone:
         self.__order_id = order.get_id()
         self.fly_to(order)
 
+    def charge(self):
+        self.__battery.charge()
+
     def get_location(self):
         return self.__location
     
@@ -100,6 +103,9 @@ class Drone:
 
     def is_low_energy(self):
         return self.__battery.is_low()
+    
+    def is_full_energy(self):
+        return self.__battery.is_full()
     
     def can_take_order(self, order):
         return True

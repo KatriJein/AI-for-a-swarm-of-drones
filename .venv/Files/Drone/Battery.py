@@ -12,3 +12,13 @@ class Battery:
     def is_low(self):
         return self.__charge < LOW_LEVEL_SIDE
     
+    def is_full(self):
+        return self.__charge == USUAL_CHARGE
+    
+    def get_charge(self):
+        return self.__charge
+    
+    def charge(self):
+        if self.__charge < 100:
+            self.__charge += 1
+    
