@@ -77,13 +77,13 @@ class Station:
             self._energy -= 1
 
     def set_drone(self, drone):
-        '''Присваивает дрону свободное место'''
+        '''Присваивает дрону свободное место, если свободных мест нет, то переводит дрон в режим ожидания'''
         if self.count_free_places() > 0:
             keys = list(self._places.keys())
             index = list(self._places.values()).index(None)
             self._places[keys[index]] = drone.get_id()
         else:
-            print("Свободных мест нет")
+            drone.wait()
 
     def remove_drone(self, drone):
         '''Убирает дрон со своего места'''
