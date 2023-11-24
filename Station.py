@@ -37,31 +37,60 @@ class Station:
         t.end_fill()
 
     def charge(self):
+        '''Заряжает станцию, если ее заряд ниже 5 тысяч'''
         if self._energy < 5000:
             while self._energy < 10000:
                 self._energy += 1
 
     def get_energy(self):
+        '''Возвращает заряд станции'''
         return self._energy
 
     def get_position(self):
+        '''Возвращает координаты станции'''
         return self._x, self._y
 
     def get_places(self):
+        '''Вовращает места станции ввиде словаря, где ключ - номер места, значение - id дрона'''
         return self._places
 
-    def get_free_places(self):
+    def count_free_places(self):
+        '''Вовращает количество свободных мест'''
         count = 0
         for key in self._places.keys():
             if not self._places[key]:
                 count += 1
         return count
-
+    
+    def get_free_places_ids(self):
+        '''Возвращает номера свободных мест'''
+        ids = []
+        for k in self._places.keys():
+            if not self._places[k]:
+                ids.append(k)
+        return ids
+    
     def charge_drone(self, drone):
+        '''Пополняет заряд дрона за счет заряда станции'''
         while (not drone.is_full_energy()) and self._energy > 0:
             drone.charge()
             self._energy -= 1
 
+    def set_drone(self, drone):
+        '''Присваивает дрону свободное место'''
+        if self.count_free_places() > 0:
+            keys = list(self._places.keys())
+            index = list(self._places.values()).index(None)
+            self._places[keys[index]] = drone.get_id()
+        else:
+            print("Свободных мест нет")
+
+    def remove_drone(self, drone):
+        '''Убирает дрон со своего места'''
+        for k in self._places.keys():
+            if self._places[k] == drone.get_id():
+                self._places[k] = None
+    
 
 st = Station()
 st.draw()
