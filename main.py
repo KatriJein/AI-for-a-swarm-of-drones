@@ -4,8 +4,9 @@ from shapely.geometry import Polygon
 WIDTH, HEIGHT = 1000, 700
 
 screen = turtle.Screen()
-screen.setup(WIDTH + 4, HEIGHT)  # запас на границы
+screen.setup(WIDTH, HEIGHT)  
 screen.setworldcoordinates(0, 0, WIDTH, HEIGHT)
+screen.cv._rootwindow.resizable(False, False)
 screen.title("Управление дронами")
 koef = 10
 
@@ -100,7 +101,7 @@ def draw_items(arr):
 orders = []
 barriers = []
 
-barriers.append(Barrier(10, 10, 10, 7, 6))
+barriers.append(Barrier(20, 20, 10, 7, 6))
 barriers.append(Barrier(60, 50, 10, 10, 6))
 draw_items(barriers)
 draw_items(orders)
