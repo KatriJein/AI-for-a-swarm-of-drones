@@ -1,47 +1,20 @@
 import turtle
 
-from Files.Additional.Constants import ID_GENERATOR, COLOR_GENERATOR, BATTERY_CHARGE, FLIGHT_ALTITUDE, WIDTH, LENGTH
-from Files.Additional.Location import Location
-from Files.Drone.Battery import Battery
-from Files.Drone_States import Await_State, Carrying_State, Flying_State
-
-class DroneHive:
-    def __init__(self):
-        self.__drones = []
-        self.__postponed_orders = []
-    
-    def add_drone(self, drone):
-        if isinstance(drone, Drone):
-            self.__drones.append(drone)
-    
-    def act(self):
-        for drone in self.__drones:
-            drone.act()
-
-    def draw(self):
-        for drone in self.__drones:
-            drone.draw()
-
-    def set_order(self, order):
-        candidates = []
-        for drone in self.__drones:
-            if drone.view_order(order):
-                candidates.append(drone)
-        if not candidates:
-            self.__postponed_orders.append(order)
-            return
-        best_candidate = min(candidates, key=lambda d: d.get_id())
-        best_candidate.take_order(order)
-
+from Drone_Constants import ID_GENERATOR, COLOR_GENERATOR, BATTERY_CHARGE, FLIGHT_ALTITUDE, DRONE_WIDTH, DRONE_LENGTH
+from Location import Location
+from Battery import Battery
+from Await_State import AwaitState
+from Flying_State import FlyingState
+from Carrying_State import CarryingState
 
 class Drone:
-    def __init__(self, width=WIDTH, length=LENGTH, flight_altitude=FLIGHT_ALTITUDE):
+    def __init__(self, width=DRONE_WIDTH, length=DRONE_LENGTH, flight_altitude=FLIGHT_ALTITUDE):
         self.__id = ID_GENERATOR.get_id()
         self.__width = width
         self.__length = length
         self.__location = Location()
         self.__battery = Battery(charge=BATTERY_CHARGE)
-        self.__state = Await_State.AwaitState()
+        self.__state = AwaitState()
         self.__flight_altitude = flight_altitude
         self.__order_id = None
 
@@ -69,17 +42,17 @@ class Drone:
         return 0
 
     def wait(self):
-        self.__state = Await_State.AwaitState()
+        self.__state = AwaitState()
         self.__turtle.up()
         self.__turtle.color(*COLOR_GENERATOR.get_inactive_state_color())
 
     def fly_to(self, target):
-        self.__state = Flying_State.FlyingState(target)
+        self.__state = FlyingState(target)
         self.__turtle.color(self.__active_color)
         self.__turtle.up()
 
     def carry_to(self, shipment, target):
-        self.__state = Carrying_State.CarryingState(shipment, target)
+        self.__state = CarryingState(shipment, target)
         self.__turtle.down()
 
     def view_order(self, order):
@@ -111,26 +84,5 @@ class Drone:
         return True
     
     def set_state(self, state):
-        if isinstance(state, (Await_State.AwaitState, Flying_State.FlyingState, Carrying_State.CarryingState)):
+        if isinstance(state, (AwaitState, FlyingState, CarryingState)):
             self.__state = state
-
-
-
-if __name__ == "__main__":
-    main_turtle = turtle.Screen()
-    main_turtle.setworldcoordinates(0, 0, 1000, 1000)
-    main_turtle.colormode(255)
-    hive = DroneHive()
-    drone = Drone()
-    drone1 = Drone()
-    hive.add_drone(drone)
-    hive.add_drone(drone1)
-    drone.fly_to(Location(2, 4))
-    drone1.fly_to(Location(4, 0))
-    for i in range(150):
-        hive.act()
-        hive.draw()
-    drone.wait()
-    main_turtle.mainloop()
-
-

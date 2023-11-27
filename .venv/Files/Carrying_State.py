@@ -1,5 +1,5 @@
 
-from .Drone_State import DroneState
+from Drone_State import DroneState
 
 class CarryingState(DroneState):
     def __init__(self, shipment, target, taken_energy=0.4):

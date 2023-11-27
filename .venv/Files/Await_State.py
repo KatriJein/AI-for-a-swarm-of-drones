@@ -1,4 +1,4 @@
-from .Drone_State import DroneState
+from Drone_State import DroneState
 
 class AwaitState(DroneState):
     def __init__(self, taken_energy=0):
