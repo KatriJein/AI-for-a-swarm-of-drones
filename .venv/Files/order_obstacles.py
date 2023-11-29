@@ -1,4 +1,4 @@
-import turtle, random
+import turtle, random, time
 from shapely.geometry import Polygon
 from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF
 
@@ -10,16 +10,30 @@ class Order:
         self.weight = weight 
         self.dest_x = destination_x
         self.dest_y = destination_y
+        self.turtle = turtle.Turtle()
+        self.is_deleted = False
         # self.polygon = Polygon([[self.x - 11, self.y + 11], [self.x + 11, self.y + 11], 
         #                         [self.x + 11, self.y - 11], [self.x - 11, self.y - 11]])
 
     def draw(self):
-            order_t = turtle.Turtle()
-            order_t.penup()
-            order_t.speed(0)
-            order_t.color("yellow")
-            order_t.shape("square")
-            order_t.setposition(self.x, self.y)
+            self.turtle.penup()
+            self.turtle.speed(0)
+            self.turtle.color("yellow")
+            self.turtle.shape("square")
+            self.turtle.setposition(self.x, self.y)
+
+    def taken_by_drone(self):
+        self.turtle.hideturtle()
+
+    def delivered_by_drone(self, x, y):
+        self.turtle.speed(0)
+        self.turtle.goto(x, y)
+        self.x, self,y = x, y
+        self.turtle.showturtle()
+        time.sleep(3)
+        self.turtle.hideturtle()
+        self.is_deleted = True
+
 
 
 class Barrier:
@@ -29,25 +43,26 @@ class Barrier:
         self.width = width * BARRIER_KOEF
         self.lenght = lenght * BARRIER_KOEF
         self.height = height * BARRIER_KOEF
+        self.turtle = turtle.Turtle()
+        self.is_deleted = False
         self.polygon = Polygon([[self.x, self.y], [self.x + self.width, self.y], 
                                 [self.x + self.width, self.y - self.lenght], [self.x, self.y - self.lenght]])
 
     def draw(self):
-            barrier_t = turtle.Turtle()
-            barrier_t.hideturtle()
-            barrier_t.penup()
-            barrier_t.speed(0)
-            barrier_t.setposition(self.x, self.y)
-            barrier_t.color("black")
-            barrier_t.pendown()
-            barrier_t.begin_fill()
+            self.turtle.hideturtle()
+            self.turtle.penup()
+            self.turtle.speed(0)
+            self.turtle.setposition(self.x, self.y)
+            self.turtle.color("black")
+            self.turtle.pendown()
+            self.turtle.begin_fill()
             for i in range(2):
-                barrier_t.forward(self.width)
-                barrier_t.right(90)
-                barrier_t.forward(self.lenght)
+                self.turtle.forward(self.width)
+                self.turtle.right(90)
+                self.turtle.forward(self.lenght)
                 if i == 0:
-                    barrier_t.right(90)
-            barrier_t.end_fill()
+                    self.turtle.right(90)
+            self.turtle.end_fill()
 
 
 class OrderObstaclesHelper:
@@ -92,7 +107,10 @@ class OrderObstaclesHelper:
 
     def draw_items(self, arr):
         for item in arr:
-            item.draw()
+            if item.is_deleted:
+                arr.remove(item)
+            else:
+                item.draw()
 
 
 if __name__ == "__main__":
