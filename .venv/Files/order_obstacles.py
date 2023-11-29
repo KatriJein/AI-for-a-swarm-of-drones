@@ -1,15 +1,14 @@
 import turtle, random
 from shapely.geometry import Polygon
-from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF
+from Location import Location
+from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND
 
 class Order:
-    def __init__(self, id, x, y, weight, destination_x, destination_y):
+    def __init__(self, id, pos, weight, dest_pos):
         self.id = id 
-        self.x = x
-        self.y = y
+        self.location = pos
         self.weight = weight 
-        self.dest_x = destination_x
-        self.dest_y = destination_y
+        self.dest_pos = dest_pos
         # self.polygon = Polygon([[self.x - 11, self.y + 11], [self.x + 11, self.y + 11], 
         #                         [self.x + 11, self.y - 11], [self.x - 11, self.y - 11]])
 
@@ -19,25 +18,32 @@ class Order:
             order_t.speed(0)
             order_t.color("yellow")
             order_t.shape("square")
-            order_t.setposition(self.x, self.y)
+            order_t.setposition(self.location.get_position())
+
+    def get_position(self):
+        return self.location.get_position()
+    
+    def get_id(self):
+        return self.id
 
 
 class Barrier:
-    def __init__(self, x, y, width, lenght, height):
-        self.x = x * BARRIER_KOEF
-        self.y = y * BARRIER_KOEF
+    def __init__(self, pos, width, lenght, height):
+        self.pos = pos
+        self.pos.x *= BARRIER_KOEF
+        self.pos.y *= BARRIER_KOEF
         self.width = width * BARRIER_KOEF
         self.lenght = lenght * BARRIER_KOEF
         self.height = height * BARRIER_KOEF
-        self.polygon = Polygon([[self.x, self.y], [self.x + self.width, self.y], 
-                                [self.x + self.width, self.y - self.lenght], [self.x, self.y - self.lenght]])
+        self.polygon = Polygon([[self.pos.x, self.pos.y], [self.pos.x + self.width, self.pos.y], 
+                                [self.pos.x + self.width, self.pos.y - self.lenght], [self.pos.x, self.pos.y - self.lenght]])
 
     def draw(self):
             barrier_t = turtle.Turtle()
             barrier_t.hideturtle()
             barrier_t.penup()
             barrier_t.speed(0)
-            barrier_t.setposition(self.x, self.y)
+            barrier_t.setposition(self.pos.get_position())
             barrier_t.color("black")
             barrier_t.pendown()
             barrier_t.begin_fill()
@@ -51,25 +57,24 @@ class Barrier:
 
 
 class OrderObstaclesHelper:
-    def __init__(self):
+    def __init__(self, hive):
         self.__current_order = False
         self.__curr_x = 0
         self.__curr_y = 0
-
+        self.__hive = hive
         self.barriers = []
         self.orders = []
 
     def generate_new_order(self, start_x, start_y, dest_x, dest_y):
         new_order = Order(
             self.find_max_index(),
-            start_x,
-            start_y,
+            Location(start_x, start_y),
             random.randint(10, 30000),
-            dest_x,
-            dest_y
+            Location(dest_x, dest_y)
         )
         self.orders.append(new_order)
         new_order.draw()
+        self.__hive.set_order(new_order)
         
     def create_polygon_for_point(self, x, y):
         return Polygon([[x - 11, y + 11], [x + 11, y + 11], 
@@ -83,7 +88,7 @@ class OrderObstaclesHelper:
 
     def on_click(self, x, y):
         if not self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
-            self.__curr_x, self.__curr_y = x, y
+            self.__curr_x, self.__curr_y = int(x) - int(x) % FLY_POINTS_IN_SECOND, int(y) - int(y) % FLY_POINTS_IN_SECOND
             self.__current_order = True
         elif self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
             self.generate_new_order(self.__curr_x, self.__curr_y, x, y)
@@ -105,8 +110,8 @@ if __name__ == "__main__":
 
     helper = OrderObstaclesHelper()
 
-    helper.barriers.append(Barrier(20, 20, 10, 7, 6))
-    helper.barriers.append(Barrier(60, 50, 10, 10, 6))
+    helper.barriers.append(Barrier(Location(20, 20), 10, 7, 6))
+    helper.barriers.append(Barrier(Location(60, 50), 10, 10, 6))
     helper.draw_items(helper.barriers)
     helper.draw_items(helper.orders)
 
