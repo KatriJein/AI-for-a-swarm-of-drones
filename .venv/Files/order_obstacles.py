@@ -5,6 +5,8 @@ from Location import Location
 from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND
 from Shared_Methods import get_corresponding_location_in_map, round_to_fly_points
 
+turtle.register_shape("Files\\Images\\order.gif")
+
 class Order:
     def __init__(self, id, pos, weight, dest_pos):
         self.id = id 
@@ -16,11 +18,9 @@ class Order:
         #                         [self.x + 11, self.y - 11], [self.x - 11, self.y - 11]])
 
     def draw(self):
-            order_t = turtle.Turtle()
+            order_t = turtle.Turtle(shape="Files\\Images\\order.gif")
             order_t.penup()
             order_t.speed(0)
-            order_t.color("yellow")
-            order_t.shape("square")
             order_t.setposition(self.location.get_position())
 
     def taken_by_drone(self):

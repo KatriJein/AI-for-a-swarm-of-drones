@@ -3,7 +3,7 @@ from Shared_constants import WIDTH, HEIGHT
 
 class Background:
     def __init__(self, screen):
-        screen.bgpic("Files/Images/fone.gif")
+        screen.bgcolor("#d8ffc8")
 
 if __name__ == "__main__":
 

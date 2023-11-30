@@ -12,6 +12,8 @@ from Await_State import AwaitState
 from Flying_State import FlyingState
 from Carrying_State import CarryingState
 
+turtle.register_shape("Files\\Images\\drone.gif")
+
 class Drone:
     def __init__(self, hive, width=DRONE_WIDTH, length=DRONE_LENGTH):
         self.__id = ID_GENERATOR.get_id()
@@ -28,12 +30,12 @@ class Drone:
         self.__set_graphics()
 
     def __set_graphics(self):
-        self.__turtle = turtle.Turtle(shape="circle")
+        self.__turtle = turtle.Turtle(shape="Files\\Images\\drone.gif")
         self.__text_turtle = turtle.Turtle()
         self.__text_turtle.hideturtle()
         self.__text_turtle.speed("fastest")
         self.__text_turtle.color("black")
-        self.__turtle.shapesize(self.__width, self.__length, 0)
+        self.__turtle.shapesize(self.__width, self.__length, 1)
         self.__turtle.speed(15)
         self.__turtle.up()
         self.__turtle.setposition(self.__location.get_position())
