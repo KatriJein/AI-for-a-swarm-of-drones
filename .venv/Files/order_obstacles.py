@@ -1,3 +1,4 @@
+
 import turtle, random
 import time
 from shapely.geometry import Polygon
@@ -13,6 +14,7 @@ class Order:
         self.location = pos
         self.weight = weight 
         self.dest_pos = dest_pos
+        self.turtle = turtle.Turtle()
         self.is_deleted = False
         # self.polygon = Polygon([[self.x - 11, self.y + 11], [self.x + 11, self.y + 11], 
         #                         [self.x + 11, self.y - 11], [self.x - 11, self.y - 11]])
@@ -50,6 +52,7 @@ class Barrier:
         self.pos.z *= BARRIER_KOEF
         self.width = width * BARRIER_KOEF
         self.lenght = lenght * BARRIER_KOEF
+        self.turtle = turtle.Turtle()
         self.is_deleted = False
         self.polygon = Polygon([[self.pos.x, self.pos.y], [self.pos.x + self.width, self.pos.y], 
                                 [self.pos.x + self.width, self.pos.y - self.lenght], [self.pos.x, self.pos.y - self.lenght]])
@@ -67,21 +70,20 @@ class Barrier:
                 loc.obj_at_location = self
 
     def draw(self):
-            barrier_t = turtle.Turtle()
-            barrier_t.hideturtle()
-            barrier_t.penup()
-            barrier_t.speed(0)
-            barrier_t.setposition(self.pos.get_position())
-            barrier_t.color("black")
-            barrier_t.pendown()
-            barrier_t.begin_fill()
+            self.turtle.hideturtle()
+            self.turtle.penup()
+            self.turtle.speed(0)
+            self.turtle.setposition(self.x, self.y)
+            self.turtle.color("black")
+            self.turtle.pendown()
+            self.turtle.begin_fill()
             for i in range(2):
-                barrier_t.forward(self.width)
-                barrier_t.right(90)
-                barrier_t.forward(self.lenght)
+                self.turtle.forward(self.width)
+                self.turtle.right(90)
+                self.turtle.forward(self.lenght)
                 if i == 0:
-                    barrier_t.right(90)
-            barrier_t.end_fill()
+                    self.turtle.right(90)
+            self.turtle.end_fill()
 
 
 class OrderObstaclesHelper:
