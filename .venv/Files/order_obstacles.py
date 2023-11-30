@@ -73,7 +73,7 @@ class Barrier:
             self.turtle.hideturtle()
             self.turtle.penup()
             self.turtle.speed(0)
-            self.turtle.setposition(self.x, self.y)
+            self.turtle.setposition(self.pos.get_position())
             self.turtle.color("black")
             self.turtle.pendown()
             self.turtle.begin_fill()
