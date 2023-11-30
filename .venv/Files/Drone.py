@@ -6,27 +6,34 @@ from Drone_Constants import ID_GENERATOR, COLOR_GENERATOR, BATTERY_CHARGE, FLIGH
 from Shared_constants import FLY_POINTS_IN_SECOND, VERY_LOW_CHARGE
 from Location import Location
 from Battery import Battery
+from Station import Station
+from order_obstacles import Barrier
 from Await_State import AwaitState
 from Flying_State import FlyingState
 from Carrying_State import CarryingState
 
 class Drone:
-    def __init__(self, width=DRONE_WIDTH, length=DRONE_LENGTH, flight_altitude=FLIGHT_ALTITUDE):
+    def __init__(self, hive, width=DRONE_WIDTH, length=DRONE_LENGTH):
         self.__id = ID_GENERATOR.get_id()
         self.__width = width
         self.__length = length
-        self.__location = Location()
+        self.__location = Location(z=FLIGHT_ALTITUDE)
         self.__battery = Battery(charge=BATTERY_CHARGE)
         self.__state = AwaitState()
-        self.__flight_altitude = flight_altitude
+        self.__flight_altitude = self.__location.z
         self.__order_id = None
         self.__path = []
+        self.__hive = hive
 
         self.__set_graphics()
 
     def __set_graphics(self):
         self.__turtle = turtle.Turtle(shape="circle")
-        self.__turtle.shapesize(self.__width, self.__length, 1)
+        self.__text_turtle = turtle.Turtle()
+        self.__text_turtle.hideturtle()
+        self.__text_turtle.speed("fastest")
+        self.__text_turtle.color("black")
+        self.__turtle.shapesize(self.__width, self.__length, 0)
         self.__turtle.speed(15)
         self.__turtle.up()
         self.__turtle.setposition(self.__location.get_position())
@@ -34,7 +41,13 @@ class Drone:
         self.__active_color = COLOR_GENERATOR.generate_color()
 
     def draw(self):
-        self.__turtle.goto(self.__location.get_position())
+        self.__text_turtle.clear()
+        loc = self.__location.get_position()
+        self.__turtle.goto(loc)
+        text_pos = (loc[0] - 70, loc[1] + 10)
+        self.__text_turtle.goto(text_pos)
+        self.__text_turtle.write(f"Id: {self.__id}, charge: {round(self.__battery.get_charge(), 2)}", font=("Times New Roman", 15, "bold"))
+        
 
     def act(self):
         self.__state.act(self)
@@ -53,7 +66,7 @@ class Drone:
     def calculate_battery_spending(self):
         return self.__state.take_energy() * self.path_distance()
     
-    def __get_track(self, cur_pos, start, end, map):
+    def __get_track(self, cur_pos, start, end, map_):
         track = {}
         track[start] = None
         queue = Queue()
@@ -62,9 +75,10 @@ class Drone:
             pos = queue.get()
             neighbours = ((pos[1][0] - 1, pos[1][1]), (pos[1][0] + 1, pos[1][1]), (pos[1][0], pos[1][1] + 1), (pos[1][0], pos[1][1] - 1))
             for n_pos in neighbours:
-                if n_pos[0] >= 0 and n_pos[0] <= len(map.map) - 1 and n_pos[1] >= 0 and n_pos[1] <= len(map.map[0]) - 1:
-                    next_elem = map.map[n_pos[0]][n_pos[1]]
-                    if next_elem in track:
+                if n_pos[0] >= 0 and n_pos[0] <= len(map_.map) - 1 and n_pos[1] >= 0 and n_pos[1] <= len(map_.map[0]) - 1:
+                    next_elem = map_.map[n_pos[0]][n_pos[1]]
+                    if next_elem in track or (self.__flight_altitude <= next_elem.z
+                                               and isinstance(next_elem.obj_at_location, Barrier)):
                         continue
                     track[next_elem] = pos[0]
                     queue.put((next_elem, n_pos))
@@ -74,15 +88,15 @@ class Drone:
         return track
 
 
-    def __build_path(self, map, target):
+    def __build_path(self, map_, target):
         self.__path = []
-        cur_pos = (len(map.map) - 1 - self.__location.x // FLY_POINTS_IN_SECOND, self.__location.y // FLY_POINTS_IN_SECOND)
-        cur_location = map.map[cur_pos[0]][cur_pos[1]]
+        cur_pos = (len(map_.map) - 1 - self.__location.x // FLY_POINTS_IN_SECOND, self.__location.y // FLY_POINTS_IN_SECOND)
+        cur_location = map_.map[cur_pos[0]][cur_pos[1]]
         target_pos = target.get_position()
-        finish_pos = (len(map.map) - 1 - target_pos[0] // FLY_POINTS_IN_SECOND, target_pos[1] // FLY_POINTS_IN_SECOND)
-        finish_location = map.map[finish_pos[0]][finish_pos[1]]
+        finish_pos = (len(map_.map) - 1 - target_pos[0] // FLY_POINTS_IN_SECOND, target_pos[1] // FLY_POINTS_IN_SECOND)
+        finish_location = map_.map[finish_pos[0]][finish_pos[1]]
         
-        track = self.__get_track(cur_pos, cur_location, finish_location, map)
+        track = self.__get_track(cur_pos, cur_location, finish_location, map_)
         while finish_location != None:
             self.__path.append(finish_location)
             finish_location = track[finish_location]
@@ -93,11 +107,12 @@ class Drone:
         self.__state = AwaitState()
         self.__turtle.up()
         self.__turtle.color(*COLOR_GENERATOR.get_inactive_state_color())
+        self.take_order(self.__hive.map)
 
-    def fly_to(self, target, map):
+    def fly_to(self, target, map_):
         self.__state = FlyingState(target)
         if not len(self.__path):
-            self.__build_path(map, target)
+            self.__build_path(map_, target)
 
         self.__turtle.color(self.__active_color)
         self.__turtle.up()
@@ -114,9 +129,19 @@ class Drone:
         self.__state = CarryingState(shipment, target)
         self.__turtle.down()
 
-    def take_order(self, map, order):
-        self.__order_id = order.get_id()
-        self.fly_to(order, map)
+    def take_order(self, map_):
+        orders = self.__hive.orders
+        candidates = []
+        if isinstance(self.__state, AwaitState) and len(orders) > 0:
+            for order in orders:
+                data = self.can_take_order(map_, order)
+                if data[0]:
+                    candidates.append((order, self.path_distance()))
+            if len(candidates) > 0:
+                best_candidate = min(candidates, key=lambda o: o[1])[0]
+                self.__hive.orders.remove(best_candidate)
+                self.__order_id = best_candidate.get_id()
+                self.fly_to(best_candidate, map_)
 
     def charge(self):
         self.__battery.charge()

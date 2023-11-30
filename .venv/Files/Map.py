@@ -8,11 +8,11 @@ class Map:
         self.map = self.__create_map()
 
     def __create_map(self):
-        map = []
+        map_ = []
         for x_value in self.__x_values:
             row = []
             for y_value in self.__y_values:
                 row.append(Location(x_value, y_value))
-            map.insert(0, row)
-        return map
+            map_.insert(0, row)
+        return map_
     

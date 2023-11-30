@@ -2,10 +2,10 @@ from Drone import Drone
 from Await_State import AwaitState
 
 class DroneHive:
-    def __init__(self, map):
-        self.__map = map
+    def __init__(self, map_):
         self.__drones = []
-        self.__postponed_orders = []
+        self.orders = []
+        self.map = map_
     
     def add_drone(self, drone):
         if isinstance(drone, Drone):
@@ -20,14 +20,6 @@ class DroneHive:
             drone.draw()
 
     def set_order(self, order):
-        candidates = []
+        self.orders.append(order)
         for drone in self.__drones:
-            if isinstance(drone.get_state(), AwaitState):
-                data = drone.can_take_order(self.__map, order)
-                if data[0]:
-                    candidates.append((drone, data[1]))
-        if not candidates:
-            self.__postponed_orders.append(order)
-            return
-        best_candidate = min(candidates, key=lambda t: (t[1], t[0].get_id()))[0]
-        best_candidate.take_order(self.__map, order)
+            drone.take_order(self.map)

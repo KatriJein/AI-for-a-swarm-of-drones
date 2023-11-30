@@ -1,7 +1,9 @@
 import turtle, random
+import time
 from shapely.geometry import Polygon
 from Location import Location
 from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND
+from Shared_Methods import get_corresponding_location_in_map, round_to_fly_points
 
 class Order:
     def __init__(self, id, pos, weight, dest_pos):
@@ -9,6 +11,7 @@ class Order:
         self.location = pos
         self.weight = weight 
         self.dest_pos = dest_pos
+        self.is_deleted = False
         # self.polygon = Polygon([[self.x - 11, self.y + 11], [self.x + 11, self.y + 11], 
         #                         [self.x + 11, self.y - 11], [self.x - 11, self.y - 11]])
 
@@ -20,6 +23,18 @@ class Order:
             order_t.shape("square")
             order_t.setposition(self.location.get_position())
 
+    def taken_by_drone(self):
+        self.turtle.hideturtle()
+
+    def delivered_by_drone(self, x, y):
+        self.turtle.speed(0)
+        self.turtle.goto(x, y)
+        self.location = Location(x, y)
+        self.turtle.showturtle()
+        time.sleep(0.1)
+        self.turtle.hideturtle()
+        self.is_deleted = True
+
     def get_position(self):
         return self.location.get_position()
     
@@ -28,15 +43,28 @@ class Order:
 
 
 class Barrier:
-    def __init__(self, pos, width, lenght, height):
+    def __init__(self, pos, width, lenght, map_):
         self.pos = pos
-        self.pos.x *= BARRIER_KOEF
-        self.pos.y *= BARRIER_KOEF
+        self.pos.x = round_to_fly_points(self.pos.x * BARRIER_KOEF)
+        self.pos.y = round_to_fly_points(self.pos.y * BARRIER_KOEF)
+        self.pos.z *= BARRIER_KOEF
         self.width = width * BARRIER_KOEF
         self.lenght = lenght * BARRIER_KOEF
-        self.height = height * BARRIER_KOEF
+        self.is_deleted = False
         self.polygon = Polygon([[self.pos.x, self.pos.y], [self.pos.x + self.width, self.pos.y], 
                                 [self.pos.x + self.width, self.pos.y - self.lenght], [self.pos.x, self.pos.y - self.lenght]])
+        self.__save_barrier_on_map(map_)
+
+    def __save_barrier_on_map(self, map_):
+        pol_bounds = self.polygon.bounds
+        pol_bounds = [int(b) for b in pol_bounds]
+        x_values = [i for i in range(pol_bounds[0] - FLY_POINTS_IN_SECOND, pol_bounds[2] + FLY_POINTS_IN_SECOND) if i % FLY_POINTS_IN_SECOND == 0]
+        y_values = [i for i in range(pol_bounds[1] - FLY_POINTS_IN_SECOND, pol_bounds[3] + FLY_POINTS_IN_SECOND) if i % FLY_POINTS_IN_SECOND == 0]
+        for x in x_values:
+            for y in y_values:
+                loc = get_corresponding_location_in_map(map_, (x,y))
+                loc.z = self.pos.z
+                loc.obj_at_location = self
 
     def draw(self):
             barrier_t = turtle.Turtle()
@@ -88,7 +116,7 @@ class OrderObstaclesHelper:
 
     def on_click(self, x, y):
         if not self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
-            self.__curr_x, self.__curr_y = int(x) - int(x) % FLY_POINTS_IN_SECOND, int(y) - int(y) % FLY_POINTS_IN_SECOND
+            self.__curr_x, self.__curr_y = round_to_fly_points(x), round_to_fly_points(y)
             self.__current_order = True
         elif self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
             self.generate_new_order(self.__curr_x, self.__curr_y, x, y)
@@ -97,7 +125,10 @@ class OrderObstaclesHelper:
 
     def draw_items(self, arr):
         for item in arr:
-            item.draw()
+            if item.is_deleted:
+                arr.remove(item)
+            else:
+                item.draw()
 
 
 if __name__ == "__main__":

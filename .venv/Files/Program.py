@@ -25,36 +25,44 @@ def stations_setup():
     st = Station()
     st.draw()
 
-def drones_setup():
-    drone = Drone()
-    drone1 = Drone()
-    drone2 = Drone()
-    drone3 = Drone()
+def drones_setup(hive):
+    drone = Drone(hive)
+    drone1 = Drone(hive)
+    drone2 = Drone(hive)
+    drone3 = Drone(hive)
     hive.add_drone(drone)
     hive.add_drone(drone1)
     hive.add_drone(drone2)
     hive.add_drone(drone3)
-    for i in range(3500):
+
+def main_cycle(hive):
+    while True:
         hive.act()
         hive.draw()
+        main_turtle.update()
 
-def obstacles_setup(helper):
+def obstacles_setup(helper, map_):
 
-    helper.barriers.append(Barrier(Location(20, 20), 10, 7, 6))
-    helper.barriers.append(Barrier(Location(60, 50), 10, 10, 6))
+    helper.barriers.append(Barrier(Location(20, 20, 6), 15, 20, map_))
+    helper.barriers.append(Barrier(Location(60, 50, 6), 13, 33, map_))
+    helper.barriers.append(Barrier(Location(30, 30, 6), 10, 10, map_))
+    helper.barriers.append(Barrier(Location(10, 20, 6), 10, 10, map_))
     helper.draw_items(helper.barriers)
     helper.draw_items(helper.orders)
 
 if __name__ == "__main__":
     main_turtle = screen_setup()
-    map = Map()
-    hive = DroneHive(map)
+    main_turtle.tracer(10, 0)
+    map_ = Map()
+    hive = DroneHive(map_)
     helper = OrderObstaclesHelper(hive)
     turtle.onscreenclick(helper.on_click)
 
-    obstacles_setup(helper)
+    obstacles_setup(helper, map_)
     stations_setup()
-    drones_setup()
+    drones_setup(hive)
+    main_turtle.update()
+    main_cycle(hive)
 
     main_turtle.mainloop()
 
