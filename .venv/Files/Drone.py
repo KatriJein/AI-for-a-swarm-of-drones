@@ -7,6 +7,8 @@ from Await_State import AwaitState
 from Flying_State import FlyingState
 from Carrying_State import CarryingState
 
+turtle.register_shape(".venv\Files\Images\drone.gif")
+
 class Drone:
     def __init__(self, width=DRONE_WIDTH, length=DRONE_LENGTH, flight_altitude=FLIGHT_ALTITUDE):
         self.__id = ID_GENERATOR.get_id()
@@ -21,7 +23,7 @@ class Drone:
         self.__set_graphics()
 
     def __set_graphics(self):
-        self.__turtle = turtle.Turtle(shape="circle")
+        self.__turtle = turtle.Turtle(shape=".venv\Files\Images\drone.gif")
         self.__turtle.shapesize(self.__width, self.__length, 1)
         self.__turtle.speed(2)
         self.__turtle.up()

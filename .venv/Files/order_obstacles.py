@@ -2,6 +2,8 @@ import turtle, random, time
 from shapely.geometry import Polygon
 from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF
 
+turtle.register_shape(".venv\Files\Images\order.gif")
+
 class Order:
     def __init__(self, id, x, y, weight, destination_x, destination_y):
         self.id = id 
@@ -18,8 +20,7 @@ class Order:
     def draw(self):
             self.turtle.penup()
             self.turtle.speed(0)
-            self.turtle.color("yellow")
-            self.turtle.shape("square")
+            self.turtle.shape(".venv\Files\Images\order.gif")
             self.turtle.setposition(self.x, self.y)
 
     def taken_by_drone(self):
