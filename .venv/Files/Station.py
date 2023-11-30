@@ -1,13 +1,13 @@
 import turtle
 from Shared_constants import WIDTH, HEIGHT, STATION_KOEF
+from Location import Location
 
 class Station:
     def __init__(self):
         self._energy = 10000
         self._width = 4 * STATION_KOEF
         self._height = 8 * STATION_KOEF
-        self._x = WIDTH / 2
-        self._y = HEIGHT / 2 + (self._height / 2)
+        self._location = Location(WIDTH / 2, HEIGHT / 2 + self._height / 2)
         self._places = {}
         for i in range(40):
             self._places[i] = None
@@ -17,7 +17,7 @@ class Station:
         t.hideturtle()
         t.penup()
         t.speed(0)
-        t.setposition(self._x, self._y)
+        t.setposition(self._location.get_position())
         t.color("red")
         t.pendown()
         t.begin_fill()
@@ -40,7 +40,7 @@ class Station:
 
     def get_position(self):
         '''Возвращает координаты станции'''
-        return self._x, self._y
+        return self._location.get_position()
 
     def get_places(self):
         '''Вовращает места станции ввиде словаря, где ключ - номер места, значение - id дрона'''

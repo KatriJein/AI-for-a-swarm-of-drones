@@ -7,6 +7,11 @@ class FlyingState(DroneState):
         self.__target = target
 
     def act(self, drone):
-        location = drone.get_location()
-        location.x += self.__target.x
-        location.y += self.__target.y
+        step = drone.next_move()
+        if step is None:
+            drone.wait()
+            return
+        drone_loc = drone.get_location()
+        drone_loc.x = step.x
+        drone_loc.y = step.y
+        drone.take_energy()
