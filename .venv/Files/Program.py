@@ -6,7 +6,7 @@ from Location import Location
 
 from Drone import Drone
 from Drone_hive import DroneHive
-from order_obstacles import Order, Barrier, OrderObstaclesHelper
+from order_obstacles import Barrier, OrderObstaclesHelper
 from screen import Background
 from Station import Station
 from Map import Map

@@ -10,15 +10,15 @@ class CarryingState(DroneState):
         # self.__target = target
 
     def take_energy(self):
-        return super().take_energy() * self.__shipment.weight
+        return super().take_energy() * self.__shipment.weight / 1000
     
     def act(self, drone):
         step = drone.next_move()
         if step is None and drone.get_location().get_position() == self.__target.dest_pos.get_position():
             self.__target.delivered_by_drone()
-            # drone.wait()
-            drone.set_state(AwaitState())
-            drone.set_order_id(None)
+            drone.wait()
+            #drone.set_state(AwaitState())
+            #drone.set_order_id(None)
             return
         # if step is None:
         #     # drone.wait()

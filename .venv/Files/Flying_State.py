@@ -11,9 +11,9 @@ class FlyingState(DroneState):
         step = drone.next_move()
         if step is None and drone.get_location().get_position() == self.__target.location.get_position():
             self.__target.taken_by_drone()
-            drone.set_state(CarryingState(self.__target))
             drone.set_order_id(self.__target.get_id())
-            drone.build_path(self.__target.dest_pos.get_position())
+            drone.build_path(self.__target.dest_pos)
+            drone.carry_to(self.__target)
             return
         if step is None:
             drone.wait()

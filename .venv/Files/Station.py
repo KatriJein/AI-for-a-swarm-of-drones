@@ -1,6 +1,7 @@
 import turtle
 from Shared_constants import WIDTH, HEIGHT, STATION_KOEF
 from Location import Location
+from Charging_State import ChargingState
 
 class Station:
     def __init__(self):
@@ -31,8 +32,7 @@ class Station:
     def charge(self):
         '''Заряжает станцию, если ее заряд ниже 5 тысяч'''
         if self._energy < 5000:
-            while self._energy < 10000:
-                self._energy += 1
+            self._energy += 1
 
     def get_energy(self):
         '''Возвращает заряд станции'''
@@ -64,9 +64,11 @@ class Station:
     
     def charge_drone(self, drone):
         '''Пополняет заряд дрона за счет заряда станции'''
-        while (not drone.is_full_energy()) and self._energy > 0:
+        if not drone.is_full_energy() and self._energy > 0:
             drone.charge()
             self._energy -= 1
+        else:
+            drone.wait()
 
     def set_drone(self, drone):
         '''Присваивает дрону свободное место, если свободных мест нет, то переводит дрон в режим ожидания'''
@@ -74,6 +76,7 @@ class Station:
             keys = list(self._places.keys())
             index = list(self._places.values()).index(None)
             self._places[keys[index]] = drone.get_id()
+            drone.set_state(ChargingState)
         else:
             drone.wait()
 
