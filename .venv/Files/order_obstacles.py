@@ -6,7 +6,7 @@ from Location import Location
 from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND
 from Shared_Methods import get_corresponding_location_in_map, round_to_fly_points
 
-turtle.register_shape("Files\\Images\\order.gif")
+turtle.register_shape(".venv\Files\Images\order.gif")
 
 class Order:
     def __init__(self, id, pos, weight, dest_pos):
@@ -14,27 +14,26 @@ class Order:
         self.location = pos
         self.weight = weight 
         self.dest_pos = dest_pos
-        self.turtle = turtle.Turtle()
+        self.turtle = turtle.Turtle(shape=".venv\Files\Images\order.gif")
         self.is_deleted = False
         # self.polygon = Polygon([[self.x - 11, self.y + 11], [self.x + 11, self.y + 11], 
         #                         [self.x + 11, self.y - 11], [self.x - 11, self.y - 11]])
 
     def draw(self):
-            order_t = turtle.Turtle(shape="Files\\Images\\order.gif")
-            order_t.penup()
-            order_t.speed(0)
-            order_t.setposition(self.location.get_position())
+        self.turtle.penup()
+        self.turtle.speed(0)
+        self.turtle.setposition(self.location.get_position())
 
     def taken_by_drone(self):
         self.turtle.hideturtle()
 
-    def delivered_by_drone(self, x, y):
+    def delivered_by_drone(self):
         self.turtle.speed(0)
-        self.turtle.goto(x, y)
-        self.location = Location(x, y)
+        self.turtle.goto(self.dest_pos.get_position()[0], self.dest_pos.get_position()[1])
+        self.location = self.dest_pos
         self.turtle.showturtle()
-        time.sleep(0.1)
-        self.turtle.hideturtle()
+        # time.sleep(5)
+        # self.turtle.hideturtle()
         self.is_deleted = True
 
     def get_position(self):
@@ -85,6 +84,8 @@ class Barrier:
                     self.turtle.right(90)
             self.turtle.end_fill()
 
+    
+
 
 class OrderObstaclesHelper:
     def __init__(self, hive):
@@ -121,7 +122,7 @@ class OrderObstaclesHelper:
             self.__curr_x, self.__curr_y = round_to_fly_points(x), round_to_fly_points(y)
             self.__current_order = True
         elif self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
-            self.generate_new_order(self.__curr_x, self.__curr_y, x, y)
+            self.generate_new_order(self.__curr_x, self.__curr_y, round_to_fly_points(x), round_to_fly_points(y))
             self.__current_order = False 
             self.__curr_x, self.__curr_y = 0, 0 
 
@@ -131,6 +132,9 @@ class OrderObstaclesHelper:
                 arr.remove(item)
             else:
                 item.draw()
+
+    def update(self):
+        pass
 
 
 if __name__ == "__main__":

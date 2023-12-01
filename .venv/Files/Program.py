@@ -16,7 +16,7 @@ def screen_setup():
     main_turtle = turtle.Screen()
     main_turtle.setup(WIDTH, HEIGHT)
     main_turtle.setworldcoordinates(START_X, START_Y, WIDTH, HEIGHT)
-    #main_turtle.cv._rootwindow.resizable(False, False)
+    main_turtle.cv._rootwindow.resizable(False, False)
     background = Background(main_turtle)
     main_turtle.colormode(255)
     return main_turtle
@@ -39,6 +39,7 @@ def main_cycle(hive):
     while True:
         hive.act()
         hive.draw()
+        helper.update()
         main_turtle.update()
 
 def obstacles_setup(helper, map_):

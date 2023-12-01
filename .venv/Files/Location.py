@@ -7,3 +7,5 @@ class Location:
         self.obj_at_location = None
     def get_position(self):
         return (self.x, self.y)
+    
+    

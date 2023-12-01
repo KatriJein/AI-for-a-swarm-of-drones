@@ -12,7 +12,7 @@ from Await_State import AwaitState
 from Flying_State import FlyingState
 from Carrying_State import CarryingState
 
-turtle.register_shape("Files\\Images\\drone.gif")
+turtle.register_shape(".venv\Files\Images\drone.gif")
 
 class Drone:
     def __init__(self, hive, width=DRONE_WIDTH, length=DRONE_LENGTH):
@@ -30,7 +30,7 @@ class Drone:
         self.__set_graphics()
 
     def __set_graphics(self):
-        self.__turtle = turtle.Turtle(shape="Files\\Images\\drone.gif")
+        self.__turtle = turtle.Turtle(shape=".venv\Files\Images\drone.gif")
         self.__text_turtle = turtle.Turtle()
         self.__text_turtle.hideturtle()
         self.__text_turtle.speed("fastest")
@@ -90,15 +90,15 @@ class Drone:
         return track
 
 
-    def __build_path(self, map_, target):
+    def build_path(self, target_pos):
         self.__path = []
-        cur_pos = (len(map_.map) - 1 - self.__location.x // FLY_POINTS_IN_SECOND, self.__location.y // FLY_POINTS_IN_SECOND)
-        cur_location = map_.map[cur_pos[0]][cur_pos[1]]
-        target_pos = target.get_position()
-        finish_pos = (len(map_.map) - 1 - target_pos[0] // FLY_POINTS_IN_SECOND, target_pos[1] // FLY_POINTS_IN_SECOND)
-        finish_location = map_.map[finish_pos[0]][finish_pos[1]]
+        cur_pos = (len(self.__hive.map.map) - 1 - self.__location.x // FLY_POINTS_IN_SECOND, self.__location.y // FLY_POINTS_IN_SECOND)
+        cur_location = self.__hive.map.map[cur_pos[0]][cur_pos[1]]
+        # target_pos = target.get_position()
+        finish_pos = (len(self.__hive.map.map) - 1 - target_pos[0] // FLY_POINTS_IN_SECOND, target_pos[1] // FLY_POINTS_IN_SECOND)
+        finish_location = self.__hive.map.map[finish_pos[0]][finish_pos[1]]
         
-        track = self.__get_track(cur_pos, cur_location, finish_location, map_)
+        track = self.__get_track(cur_pos, cur_location, finish_location, self.__hive.map)
         while finish_location != None:
             self.__path.append(finish_location)
             finish_location = track[finish_location]
@@ -109,15 +109,15 @@ class Drone:
         self.__state = AwaitState()
         self.__turtle.up()
         self.__turtle.color(*COLOR_GENERATOR.get_inactive_state_color())
-        self.take_order(self.__hive.map)
+        # self.take_order(self.__hive.map)
 
-    def fly_to(self, target, map_):
-        self.__state = FlyingState(target)
-        if not len(self.__path):
-            self.__build_path(map_, target)
+    # def fly_to(self, target, map_):
+    #     self.__state = FlyingState(target)
+    #     if not len(self.__path):
+    #         self.build_path(target)
 
-        self.__turtle.color(self.__active_color)
-        self.__turtle.up()
+    #     self.__turtle.color(self.__active_color)
+    #     self.__turtle.up()
 
     def next_move(self):
         if len(self.__path) > 0:
@@ -131,19 +131,19 @@ class Drone:
         self.__state = CarryingState(shipment, target)
         self.__turtle.down()
 
-    def take_order(self, map_):
-        orders = self.__hive.orders
-        candidates = []
-        if isinstance(self.__state, AwaitState) and len(orders) > 0:
-            for order in orders:
-                data = self.can_take_order(map_, order)
-                if data[0]:
-                    candidates.append((order, self.path_distance()))
-            if len(candidates) > 0:
-                best_candidate = min(candidates, key=lambda o: o[1])[0]
-                self.__hive.orders.remove(best_candidate)
-                self.__order_id = best_candidate.get_id()
-                self.fly_to(best_candidate, map_)
+    # def take_order(self, map_):
+    #     orders = self.__hive.orders
+    #     candidates = []
+    #     if isinstance(self.__state, AwaitState) and len(orders) > 0:
+    #         for order in orders:
+    #             data = self.can_take_order(map_, order)
+    #             if data[0]:
+    #                 candidates.append((order, self.path_distance()))
+    #         if len(candidates) > 0:
+    #             best_candidate = min(candidates, key=lambda o: o[1])[0]
+    #             self.__hive.orders.remove(best_candidate)
+    #             self.__order_id = best_candidate.get_id()
+    #             self.fly_to(best_candidate, map_)
 
     def charge(self):
         self.__battery.charge()
@@ -156,6 +156,9 @@ class Drone:
     
     def get_id(self):
         return self.__id
+    
+    def get_order_id(self):
+        return self.__order_id
 
     def is_low_energy(self):
         return self.__battery.is_low()
@@ -164,7 +167,7 @@ class Drone:
         return self.__battery.is_full()
     
     def can_take_order(self, map, order):
-        self.__build_path(map, order)
+        self.build_path(order)
         possibly_taken_charge = self.calculate_battery_spending()
         if self.__battery.get_charge() - possibly_taken_charge >= VERY_LOW_CHARGE:
             return (True, self.path_distance())
@@ -173,3 +176,6 @@ class Drone:
     def set_state(self, state):
         if isinstance(state, (AwaitState, FlyingState, CarryingState)):
             self.__state = state
+
+    def set_order_id(self, order_id):
+        self.__order_id = order_id

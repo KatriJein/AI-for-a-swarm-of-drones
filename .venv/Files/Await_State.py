@@ -7,3 +7,5 @@ class AwaitState(DroneState):
     def take_energy(self):
         return self.taken_energy_amount
         
+    def act(self, drone):
+        pass

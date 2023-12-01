@@ -1,5 +1,6 @@
-
+from Carrying_State import CarryingState
 from Drone_State import DroneState
+from order_obstacles import Order
 
 class FlyingState(DroneState):
     def __init__(self, target, taken_energy=0.4):
@@ -8,6 +9,12 @@ class FlyingState(DroneState):
 
     def act(self, drone):
         step = drone.next_move()
+        if step is None and drone.get_location().get_position() == self.__target.location.get_position():
+            self.__target.taken_by_drone()
+            drone.set_state(CarryingState(self.__target))
+            drone.set_order_id(self.__target.get_id())
+            drone.build_path(self.__target.dest_pos.get_position())
+            return
         if step is None:
             drone.wait()
             return
