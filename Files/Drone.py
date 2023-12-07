@@ -1,4 +1,4 @@
-import turtle
+import turtle, os
 
 from queue import Queue
 
@@ -13,7 +13,8 @@ from Flying_State import FlyingState
 from Carrying_State import CarryingState
 from Charging_State import ChargingState
 
-turtle.register_shape("Files\Images\drone.gif")
+drone_path = os.path.join("Files", "Images", "drone.gif")
+turtle.register_shape(drone_path)
 
 class Drone:
     def __init__(self, hive, width=DRONE_WIDTH, length=DRONE_LENGTH):
@@ -31,7 +32,7 @@ class Drone:
         self.__set_graphics()
 
     def __set_graphics(self):
-        self.__turtle = turtle.Turtle(shape="Files\Images\drone.gif")
+        self.__turtle = turtle.Turtle(shape=drone_path)
         self.__text_turtle = turtle.Turtle()
         self.__text_turtle.hideturtle()
         self.__text_turtle.speed("fastest")

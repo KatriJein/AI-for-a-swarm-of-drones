@@ -1,12 +1,13 @@
 
-import turtle, random
+import turtle, random, os
 import time
 from shapely.geometry import Polygon
 from Location import Location
 from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND
 from Shared_Methods import get_corresponding_location_in_map, round_to_fly_points
 
-turtle.register_shape("Files\Images\order.gif")
+order_path = os.path.join("Files", "Images", "order.gif")
+turtle.register_shape(order_path)
 
 class Order:
     def __init__(self, id, pos, weight, dest_pos):
@@ -14,7 +15,7 @@ class Order:
         self.location = pos
         self.weight = weight 
         self.dest_pos = dest_pos
-        self.turtle = turtle.Turtle(shape="Files\Images\order.gif")
+        self.turtle = turtle.Turtle(shape=order_path)
         self.is_deleted = False
         # self.polygon = Polygon([[self.x - 11, self.y + 11], [self.x + 11, self.y + 11], 
         #                         [self.x + 11, self.y - 11], [self.x - 11, self.y - 11]])
