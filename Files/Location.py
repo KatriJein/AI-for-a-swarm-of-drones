@@ -8,4 +8,3 @@ class Location:
     def get_position(self):
         return (self.x, self.y)
     
-    

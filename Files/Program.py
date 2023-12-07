@@ -21,15 +21,15 @@ def screen_setup():
     main_turtle.colormode(255)
     return main_turtle
 
-def stations_setup():
-    st = Station()
-    st.draw()
+# def stations_setup():
+#     st = Station()
+#     st.draw()
 
 def drones_setup(hive):
-    drone = Drone(hive)
-    drone1 = Drone(hive)
-    drone2 = Drone(hive)
-    drone3 = Drone(hive)
+    drone = Drone(hive, st)
+    drone1 = Drone(hive, st)
+    drone2 = Drone(hive, st)
+    drone3 = Drone(hive, st)
     hive.add_drone(drone)
     hive.add_drone(drone1)
     hive.add_drone(drone2)
@@ -60,7 +60,9 @@ if __name__ == "__main__":
     turtle.onscreenclick(helper.on_click)
 
     obstacles_setup(helper, map_)
-    stations_setup()
+    # stations_setup()
+    st = Station()
+    st.draw()
     drones_setup(hive)
     main_turtle.update()
     main_cycle(hive)

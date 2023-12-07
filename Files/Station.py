@@ -1,5 +1,6 @@
 import turtle
 from Shared_constants import WIDTH, HEIGHT, STATION_KOEF
+from Shared_Methods import round_to_fly_points
 from Location import Location
 from Charging_State import ChargingState
 
@@ -41,6 +42,13 @@ class Station:
     def get_position(self):
         '''Возвращает координаты станции'''
         return self._location.get_position()
+    
+    def get_location_place(self, place_id):
+        '''Возвращает локацию определенного места'''
+        x, y = self._location.get_position()
+        x = x + ((place_id * STATION_KOEF) % self._width) + (STATION_KOEF / 2)
+        y = y - (((place_id * STATION_KOEF) // (self._height + STATION_KOEF)) * 10) - STATION_KOEF / 2
+        return Location(round_to_fly_points(x), round_to_fly_points(y))
 
     def get_places(self):
         '''Вовращает места станции ввиде словаря, где ключ - номер места, значение - id дрона'''
@@ -79,6 +87,9 @@ class Station:
             drone.set_state(ChargingState)
         else:
             drone.wait()
+
+    def set_drone(self, drone, place_id):
+        self._places[place_id] = drone.get_id()
 
     def remove_drone(self, drone):
         '''Убирает дрон со своего места'''

@@ -1,4 +1,4 @@
-
+import math
 USUAL_CHARGE = 100
 LOW_LEVEL_SIDE = 20
 
@@ -21,4 +21,6 @@ class Battery:
     def charge(self):
         if self.__charge < 100:
             self.__charge += 1
+        if self.__charge >= 100:
+            self.__charge = 100
     

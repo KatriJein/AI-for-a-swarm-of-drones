@@ -17,7 +17,7 @@ drone_path = os.path.join("Files", "Images", "drone.gif")
 turtle.register_shape(drone_path)
 
 class Drone:
-    def __init__(self, hive, width=DRONE_WIDTH, length=DRONE_LENGTH):
+    def __init__(self, hive, station, width=DRONE_WIDTH, length=DRONE_LENGTH):
         self.__id = ID_GENERATOR.get_id()
         self.__width = width
         self.__length = length
@@ -26,6 +26,7 @@ class Drone:
         self.__state = AwaitState()
         self.__flight_altitude = self.__location.z
         self.__order_id = None
+        self.__station = station
         self.__path = []
         self.__hive = hive
 
@@ -39,7 +40,7 @@ class Drone:
         self.__text_turtle.color("black")
         self.__turtle.shapesize(self.__width, self.__length, 1)
         self.__turtle.pensize(3)
-        self.__turtle.speed(15)
+        self.__turtle.speed(2)
         self.__turtle.up()
         self.__turtle.setposition(self.__location.get_position())
         self.__turtle.color(*COLOR_GENERATOR.get_inactive_state_color())
@@ -163,6 +164,9 @@ class Drone:
     
     def get_order_id(self):
         return self.__order_id
+
+    def get_station(self):
+        return self.__station
 
     def is_low_energy(self):
         return self.__battery.is_low()
