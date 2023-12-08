@@ -1,10 +1,11 @@
 
 import turtle, random, os
-import time
+from time import time
 from shapely.geometry import Polygon
 from Location import Location
-from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND
-from Shared_Methods import get_corresponding_location_in_map, round_to_fly_points
+from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND, ORDER_SIZE
+from Shared_Methods import get_corresponding_location_in_map, round_to_fly_points, save_obj_to_map
+from Station import Station
 
 order_path = os.path.join("Files", "Images", "order.gif")
 turtle.register_shape(order_path)
@@ -17,6 +18,7 @@ class Order:
         self.dest_pos = dest_pos
         self.turtle = turtle.Turtle(shape=order_path)
         self.is_deleted = False
+        self.deliver_time = None
         # self.polygon = Polygon([[self.x - 11, self.y + 11], [self.x + 11, self.y + 11], 
         #                         [self.x + 11, self.y - 11], [self.x - 11, self.y - 11]])
 
@@ -28,14 +30,14 @@ class Order:
     def taken_by_drone(self):
         self.turtle.hideturtle()
 
+
     def delivered_by_drone(self):
         self.turtle.speed(0)
         self.turtle.goto(self.dest_pos.get_position()[0], self.dest_pos.get_position()[1])
         self.location = self.dest_pos
         self.turtle.showturtle()
-        #self.turtle.hideturtle()
-        #self.turtle.clear()
         self.is_deleted = True
+        self.deliver_time = time()
 
     def get_position(self):
         return self.location.get_position()
@@ -56,18 +58,7 @@ class Barrier:
         self.is_deleted = False
         self.polygon = Polygon([[self.pos.x, self.pos.y], [self.pos.x + self.width, self.pos.y], 
                                 [self.pos.x + self.width, self.pos.y - self.lenght], [self.pos.x, self.pos.y - self.lenght]])
-        self.__save_barrier_on_map(map_)
-
-    def __save_barrier_on_map(self, map_):
-        pol_bounds = self.polygon.bounds
-        pol_bounds = [int(b) for b in pol_bounds]
-        x_values = [i for i in range(pol_bounds[0] - FLY_POINTS_IN_SECOND, pol_bounds[2] + FLY_POINTS_IN_SECOND) if i % FLY_POINTS_IN_SECOND == 0]
-        y_values = [i for i in range(pol_bounds[1] - FLY_POINTS_IN_SECOND, pol_bounds[3] + FLY_POINTS_IN_SECOND) if i % FLY_POINTS_IN_SECOND == 0]
-        for x in x_values:
-            for y in y_values:
-                loc = get_corresponding_location_in_map(map_, (x,y))
-                loc.z = self.pos.z
-                loc.obj_at_location = self
+        save_obj_to_map(self, map_)
 
     def draw(self):
             self.turtle.hideturtle()
@@ -84,6 +75,9 @@ class Barrier:
                 if i == 0:
                     self.turtle.right(90)
             self.turtle.end_fill()
+
+    def get_location(self):
+        return self.pos
 
     
 
@@ -109,8 +103,8 @@ class OrderObstaclesHelper:
         self.__hive.set_order(new_order)
         
     def create_polygon_for_point(self, x, y):
-        return Polygon([[x - 11, y + 11], [x + 11, y + 11], 
-                            [x + 11, y - 11], [x - 11, y - 11]])
+        return Polygon([[x - ORDER_SIZE, y + ORDER_SIZE], [x + ORDER_SIZE, y + ORDER_SIZE], 
+                            [x + ORDER_SIZE, y - ORDER_SIZE], [x - ORDER_SIZE, y - ORDER_SIZE]])
 
     def find_max_index(self):
         return max(order.id for order in self.orders) + 1 if self.orders else 0
@@ -119,23 +113,30 @@ class OrderObstaclesHelper:
         return any(p.polygon.intersects(self.create_polygon_for_point(x, y)) for p in polygons)
 
     def on_click(self, x, y):
-        if not self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
-            self.__curr_x, self.__curr_y = round_to_fly_points(x), round_to_fly_points(y)
-            self.__current_order = True
-        elif self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
-            self.generate_new_order(self.__curr_x, self.__curr_y, round_to_fly_points(x), round_to_fly_points(y))
-            self.__current_order = False 
-            self.__curr_x, self.__curr_y = 0, 0 
+        if x >= 0 and x <= self.__hive.map.x_max and y >= 0 and y <= self.__hive.map.y_max:
+            if not self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
+                self.__curr_x, self.__curr_y = round_to_fly_points(x), round_to_fly_points(y)
+                self.__current_order = True
+            elif self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
+                self.generate_new_order(self.__curr_x, self.__curr_y, round_to_fly_points(x), round_to_fly_points(y))
+                self.__current_order = False 
+                self.__curr_x, self.__curr_y = 0, 0 
 
     def draw_items(self, arr):
         for item in arr:
-            if item.is_deleted:
-                arr.remove(item)
-            else:
-                item.draw()
+            if not isinstance(item, Station):
+                if item.is_deleted:
+                    arr.remove(item)
+                else:
+                    item.draw()
 
     def update(self):
-        pass
+        for i in range(len(self.orders) - 1, -1, -1):
+            if self.orders[i].is_deleted:
+                if time() - self.orders[i].deliver_time > 0.5:
+                    self.orders[i].turtle.hideturtle()
+                    del self.orders[i]
+
 
 
 if __name__ == "__main__":

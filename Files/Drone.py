@@ -94,8 +94,8 @@ class Drone:
             for n_pos in neighbours:
                 if n_pos[0] >= 0 and n_pos[0] <= len(map_.map) - 1 and n_pos[1] >= 0 and n_pos[1] <= len(map_.map[0]) - 1:
                     next_elem = map_.map[n_pos[0]][n_pos[1]]
-                    if next_elem in track or (self.__flight_altitude <= next_elem.z
-                                               and isinstance(next_elem.obj_at_location, Barrier)):
+                    if (next_elem in track or (self.__order_id is not None and self.__flight_altitude <= next_elem.z and isinstance(next_elem.obj_at_location, (Barrier, Station)))
+                        or (self.__order_id is None and self.__flight_altitude <= next_elem.z and isinstance(next_elem.obj_at_location, Barrier))):
                         continue
                     track[next_elem] = pos[0]
                     queue.put((next_elem, n_pos))
@@ -114,10 +114,13 @@ class Drone:
         finish_location = self.__hive.map.map[finish_pos[0]][finish_pos[1]]
         
         track = self.__get_track(cur_pos, cur_location, finish_location, self.__hive.map)
-        while finish_location != None:
-            path.append(finish_location)
-            finish_location = track[finish_location]
-        path.reverse()
+        try:
+            while finish_location != None:
+                path.append(finish_location)
+                finish_location = track[finish_location]
+            path.reverse()
+        except:
+            pass
         return path
 
 
@@ -126,13 +129,12 @@ class Drone:
         self.__turtle.up()
         self.__turtle.clear()
         self.__turtle.color(*COLOR_GENERATOR.get_inactive_state_color())
-        # self.take_order(self.__hive.map)
+        self.take_order()
 
     def fly(self, target):
          if not len(self.__path):
              self.__path = self.build_path(target)
          self.__state = FlyingState(target)
-
          self.__turtle.color(self.__active_color)
          self.__turtle.up()
 
@@ -167,6 +169,10 @@ class Drone:
     def get_location(self):
         return self.__location
     
+    def set_location(self, x, y):
+        self.__location.x = x
+        self.__location.y = y
+    
     def get_state(self):
         return self.__state
     
@@ -191,8 +197,8 @@ class Drone:
         carrying_state_simulation = CarryingState(order)
         possibly_taken_charge = self.calculate_battery_spending(path_to_order, (path_to_order_dest, carrying_state_simulation))
         if self.__battery.get_charge() - possibly_taken_charge >= VERY_LOW_CHARGE:
-            self.__path = path_to_order
-            return (True, self.path_distance())
+            #self.__path = path_to_order
+            return (True, self.path_distance(path_to_order))
         return (False, -1)
     
     def set_state(self, state):

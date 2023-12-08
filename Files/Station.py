@@ -1,15 +1,17 @@
 import turtle
-from Shared_constants import WIDTH, HEIGHT, STATION_KOEF
-from Shared_Methods import round_to_fly_points
+from Shared_constants import WIDTH, HEIGHT, STATION_KOEF, ORDER_SIZE
+from Shared_Methods import round_to_fly_points, save_obj_to_map
 from Location import Location
 from Charging_State import ChargingState
+from shapely.geometry import Polygon
 
 class Station:
-    def __init__(self):
+    def __init__(self, map_):
         self._energy = 10000
         self._width = 4 * STATION_KOEF
         self._height = 8 * STATION_KOEF
-        self._location = Location(WIDTH / 2, HEIGHT / 2 + self._height / 2)
+        self._location = Location(round_to_fly_points(WIDTH / 2), round_to_fly_points(HEIGHT / 2 + self._height / 2))
+        self._location.z = 10 * STATION_KOEF
         self._places_coordinates = {}
         self._places_drones = {}
         self._places_count = 32
@@ -27,6 +29,12 @@ class Station:
 
         for i in range(self._places_count):
             self._places_drones[i] = None
+        
+        self.polygon = Polygon([[self._location.x - ORDER_SIZE, self._location.y - ORDER_SIZE], [self._location.x + self._height + ORDER_SIZE, self._location.y - ORDER_SIZE], 
+                                [self._location.x + self._height + ORDER_SIZE, self._location.y + self._width + ORDER_SIZE], [self._location.x - ORDER_SIZE, self._location.y + self._width + ORDER_SIZE]])
+        self.is_deleted = False
+        save_obj_to_map(self, map_)
+
 
     def get_places_coordinates(self):
         '''Возврщает словарь, ключ - номер места, значение - левые нижние координаты места'''
@@ -40,7 +48,6 @@ class Station:
         '''Возвращает координаты места дрона по индексу последнего'''
         return self._places_coordinates[list(self._places_drones.values()).index(drone_id)]
         
-
     def draw(self):
         '''Отрисовка станции'''
         t = turtle.Turtle()
@@ -72,6 +79,9 @@ class Station:
     def get_position(self):
         '''Возвращает координаты станции'''
         return self._location.get_position()
+    
+    def get_location(self):
+        return self._location
     
     def get_location_place(self, place_id):
         '''Возвращает локацию определенного места'''
@@ -121,11 +131,29 @@ class Station:
     def set_drone(self, drone, place_id):
         self._places_drones[place_id] = drone.get_id()
 
+    def __sum_minimum_delta(self, value, left_delta, right_delta):
+        if abs(left_delta) > abs(right_delta):
+            value += right_delta
+        else:
+            value += left_delta
+        return value
+
+    #def __define_best_coordinate(self, coords):
+        #y_value = coords[1]
+        #bounds = self.polygon.bounds
+        #y_down_delta = bounds[1]  - y_value
+        #y_up_delta = bounds[3]  - y_value
+        #y_value = self.__sum_minimum_delta(y_value, y_down_delta, y_up_delta)
+        #return round_to_fly_points(y_value + STATION_KOEF / 2)
+
+
     def remove_drone(self, drone):
         '''Убирает дрон со своего места'''
+        bounds = self.polygon.bounds;
         for k in self._places_drones.keys():
             if self._places_drones[k] == drone.get_id():
                 self._places_drones[k] = None
+        drone.set_location(round_to_fly_points(bounds[0] + (bounds[2] - bounds[0]) / 2), round_to_fly_points(bounds[1] - 10))
     
 
 if __name__ == "__main__":
