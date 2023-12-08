@@ -45,7 +45,7 @@ def main_cycle(hive):
 def obstacles_setup(helper, map_):
 
     helper.barriers.append(Barrier(Location(20, 20, 6), 15, 20, map_))
-    helper.barriers.append(Barrier(Location(60, 50, 6), 13, 33, map_))
+    helper.barriers.append(Barrier(Location(70, 50, 6), 13, 33, map_))
     helper.barriers.append(Barrier(Location(30, 30, 6), 10, 10, map_))
     helper.barriers.append(Barrier(Location(10, 20, 6), 10, 10, map_))
     helper.draw_items(helper.barriers)

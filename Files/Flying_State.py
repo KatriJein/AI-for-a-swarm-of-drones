@@ -17,8 +17,8 @@ class FlyingState(DroneState):
                 if (drone.get_location().get_position() == pos):
                     self.__target.taken_by_drone()
                     drone.set_order_id(self.__target.get_id())
-                    drone.build_path(self.__target.dest_pos)
-                    drone.carry_to(self.__target)
+                    path = drone.build_path(self.__target.dest_pos)
+                    drone.carry_to(path, self.__target)
                     return
             elif isinstance(self.__target, Location):
                 pos = self.__target.get_position()

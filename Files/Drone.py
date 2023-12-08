@@ -61,16 +61,27 @@ class Drone:
     def take_energy(self):
         self.__battery.take_energy(self.__state.take_energy())
 
-    def path_distance(self):
+    def path_distance(self, optional_path=None):
+        path = self.__path if optional_path is None else optional_path
         completed_steps = 0
-        for i in range(1, len(self.__path)):
-            cur_loc = self.__path[i].get_position()
-            prev_loc = self.__path[i - 1].get_position()
+        for i in range(1, len(path)):
+            cur_loc = path[i].get_position()
+            prev_loc = path[i - 1].get_position()
             completed_steps += abs(cur_loc[0] - prev_loc[0]) + abs(cur_loc[1] - prev_loc[1])
         return completed_steps
             
-    def calculate_battery_spending(self):
-        return self.__state.take_energy() * (self.path_distance() / FLY_POINTS_IN_SECOND)
+    def calculate_battery_spending(self, *args):
+        taken_energy = 0
+        for arg in args:
+            steps = 0
+            path, condition = None, None
+            if isinstance(arg, tuple):
+                path, condition = arg
+            else:
+                path = arg
+            steps += self.path_distance(path)
+            taken_energy += (self.__state if condition is None else condition).take_energy() * (steps / FLY_POINTS_IN_SECOND)
+        return taken_energy
     
     def __get_track(self, cur_pos, start, end, map_):
         track = {}
@@ -94,9 +105,9 @@ class Drone:
         return track
 
 
-    def build_path(self, target):
-        self.__path = []
-        cur_pos = (len(self.__hive.map.map) - 1 - self.__location.x // FLY_POINTS_IN_SECOND, self.__location.y // FLY_POINTS_IN_SECOND)
+    def build_path(self, target, from_=None):
+        path = []
+        cur_pos = (len(self.__hive.map.map) - 1 - (self.__location.x if from_ is None else from_.x) // FLY_POINTS_IN_SECOND, (self.__location.y if from_ is None else from_.y) // FLY_POINTS_IN_SECOND)
         cur_location = self.__hive.map.map[cur_pos[0]][cur_pos[1]]
         target_pos = target.get_position()
         finish_pos = (len(self.__hive.map.map) - 1 - target_pos[0] // FLY_POINTS_IN_SECOND, target_pos[1] // FLY_POINTS_IN_SECOND)
@@ -104,9 +115,10 @@ class Drone:
         
         track = self.__get_track(cur_pos, cur_location, finish_location, self.__hive.map)
         while finish_location != None:
-            self.__path.append(finish_location)
+            path.append(finish_location)
             finish_location = track[finish_location]
-        self.__path.reverse()
+        path.reverse()
+        return path
 
 
     def wait(self):
@@ -117,9 +129,9 @@ class Drone:
         # self.take_order(self.__hive.map)
 
     def fly(self, target):
-         self.__state = FlyingState(target)
          if not len(self.__path):
-             self.build_path(target)
+             self.__path = self.build_path(target)
+         self.__state = FlyingState(target)
 
          self.__turtle.color(self.__active_color)
          self.__turtle.up()
@@ -132,7 +144,8 @@ class Drone:
         return None
 
 
-    def carry_to(self, shipment):
+    def carry_to(self, path, shipment):
+        self.__path = path
         self.__state = CarryingState(shipment)
         self.__turtle.down()
 
@@ -143,12 +156,10 @@ class Drone:
             for order in orders:
                 data = self.can_take_order(order)
                 if data[0]:
-                    candidates.append((order, self.path_distance()))
+                    candidates.append((order, data[1]))
             if len(candidates) > 0:
-                best_candidate = min(candidates, key=lambda o: o[1])[0]
-                self.__hive.orders.remove(best_candidate)
-                self.__order_id = best_candidate.get_id()
-                self.fly(best_candidate)
+                best_candidate = min(candidates, key=lambda o: o[1])
+                self.__hive.send_order_request(self, best_candidate)
 
     def charge(self):
         self.__battery.charge()
@@ -175,9 +186,12 @@ class Drone:
         return self.__battery.is_full()
     
     def can_take_order(self, order):
-        self.build_path(order)
-        possibly_taken_charge = self.calculate_battery_spending()
+        path_to_order = self.build_path(order)
+        path_to_order_dest = self.build_path(order.dest_pos, order.location)
+        carrying_state_simulation = CarryingState(order)
+        possibly_taken_charge = self.calculate_battery_spending(path_to_order, (path_to_order_dest, carrying_state_simulation))
         if self.__battery.get_charge() - possibly_taken_charge >= VERY_LOW_CHARGE:
+            self.__path = path_to_order
             return (True, self.path_distance())
         return (False, -1)
     
@@ -187,3 +201,6 @@ class Drone:
 
     def set_order_id(self, order_id):
         self.__order_id = order_id
+    
+    def del_order_id(self):
+        self.__order_id = None

@@ -21,6 +21,20 @@ class DroneHive:
         for drone in self.__drones:
             drone.draw()
 
+    def send_order_request(self, drone, order_data):
+        order = order_data[0]
+        best_candidate = (drone, order_data[1])
+        for d in self.__drones:
+            if d.get_id() != drone.get_id() and isinstance(d.get_state(), AwaitState):
+                data = d.can_take_order(order)
+                if data[0]:
+                    distance_to_order = data[1]
+                    if distance_to_order < best_candidate[1]:
+                        best_candidate = (d, distance_to_order)
+        self.orders.remove(order)
+        best_candidate[0].set_order_id(order.get_id())
+        best_candidate[0].fly(order)
+
     #def choose_drone(self, order):
         #best_candidate = None 
         #min_dist = float('inf')
