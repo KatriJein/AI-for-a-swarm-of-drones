@@ -5,6 +5,8 @@ from Location import Location
 from Charging_State import ChargingState
 from shapely.geometry import Polygon
 
+turtle.register_shape('Files\Images\poligon.gif')
+
 class Station:
     def __init__(self, map_):
         self._energy = 10000
@@ -51,20 +53,17 @@ class Station:
     def draw(self):
         '''Отрисовка станции'''
         t = turtle.Turtle()
+        t.shape('Files\Images\poligon.gif')
         t.hideturtle()
         t.penup()
         t.speed(0)
-        t.color('black')
         t.setposition(self._location.get_position())
-        t.fillcolor('yellow')
         for i in range(self._places_count):
             t.setposition(self._places_coordinates[i])
-            t.pendown()
-            t.begin_fill()
+            t.stamp()
             for j in range(4):
                 t.forward(self._place_size)
                 t.left(90)
-            t.end_fill()
             t.penup()
 
     def charge(self):
@@ -86,8 +85,6 @@ class Station:
     def get_location_place(self, place_id):
         '''Возвращает локацию определенного места'''
         x, y = self.get_place_coordinates(place_id)
-        x += (STATION_KOEF / 2)
-        y += STATION_KOEF / 2
         return Location(round_to_fly_points(x), round_to_fly_points(y))
 
     def get_places_drones(self):
