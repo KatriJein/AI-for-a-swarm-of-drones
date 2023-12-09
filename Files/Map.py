@@ -6,6 +6,8 @@ class Map:
         self.__x_values = [i for i in range(START_X, WIDTH + 1) if i % FLY_POINTS_IN_SECOND == 0]
         self.__y_values = [i for i in range(START_Y, HEIGHT + 1) if i % FLY_POINTS_IN_SECOND == 0]
         self.map = self.__create_map()
+        self.x_max = max(self.__x_values)
+        self.y_max = max(self.__y_values)
 
     def __create_map(self):
         map_ = []
