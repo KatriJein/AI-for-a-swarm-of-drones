@@ -9,6 +9,22 @@ from Shared_Methods import get_corresponding_location_in_map, round_to_fly_point
 order_path = os.path.join("Files", "Images", "order.gif")
 turtle.register_shape(order_path)
 
+turtle.register_shape('Files\Images\Buildings\Building1.gif')
+turtle.register_shape('Files\Images\Buildings\Building2.gif')
+turtle.register_shape('Files\Images\Buildings\Building3.gif')
+turtle.register_shape('Files\Images\Buildings\Building4.gif')
+turtle.register_shape('Files\Images\Buildings\Building5.gif')
+turtle.register_shape('Files\Images\Buildings\Building6.gif')
+
+buildings_paths = {
+    (90, 90): 'Files\Images\Buildings\Building1.gif',
+    (150, 30): 'Files\Images\Buildings\Building2.gif',
+    (80, 110): 'Files\Images\Buildings\Building3.gif',
+    (150, 100): 'Files\Images\Buildings\Building4.gif',
+    (30, 130): 'Files\Images\Buildings\Building5.gif',
+    (90, 150): 'Files\Images\Buildings\Building6.gif',    
+}
+
 class Order:
     def __init__(self, id, pos, weight, dest_pos):
         self.id = id 
