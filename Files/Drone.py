@@ -21,7 +21,7 @@ class Drone:
         self.__id = ID_GENERATOR.get_id()
         self.__width = width
         self.__length = length
-        self.__location = Location(z=FLIGHT_ALTITUDE)
+        self.__location = Location(580, 400, z=FLIGHT_ALTITUDE)
         self.__battery = Battery(charge=BATTERY_CHARGE)
         self.__state = AwaitState()
         self.__flight_altitude = self.__location.z
