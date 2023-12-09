@@ -146,7 +146,7 @@ class Station:
 
     def remove_drone(self, drone):
         '''Убирает дрон со своего места'''
-        bounds = self.polygon.bounds;
+        bounds = self.polygon.bounds
         for k in self._places_drones.keys():
             if self._places_drones[k] == drone.get_id():
                 self._places_drones[k] = None

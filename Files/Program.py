@@ -45,10 +45,12 @@ def main_cycle(hive, station):
 
 def obstacles_setup(helper, station, map_):
 
-    helper.barriers.append(Barrier(Location(20, 20, 6), 15, 20, map_))
-    helper.barriers.append(Barrier(Location(70, 50, 6), 13, 33, map_))
-    helper.barriers.append(Barrier(Location(30, 30, 6), 10, 10, map_))
-    helper.barriers.append(Barrier(Location(10, 20, 6), 10, 10, map_))
+    helper.barriers.append(Barrier(Location(20, 20, 6), 81, map_))
+    helper.barriers.append(Barrier(Location(70, 50, 6), 88, map_))
+    helper.barriers.append(Barrier(Location(30, 30, 6), 45, map_))
+    helper.barriers.append(Barrier(Location(50, 20, 6), 150, map_))
+    helper.barriers.append(Barrier(Location(10, 60, 6), 135, map_))
+    helper.barriers.append(Barrier(Location(80, 20, 6), 39, map_))
     helper.barriers.append(station)
     helper.draw_items(helper.barriers)
     helper.draw_items(helper.orders)

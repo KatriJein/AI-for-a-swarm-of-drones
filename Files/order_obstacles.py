@@ -1,4 +1,3 @@
-
 import turtle, random, os
 from time import time
 from shapely.geometry import Polygon
@@ -8,22 +7,25 @@ from Shared_Methods import get_corresponding_location_in_map, round_to_fly_point
 from Station import Station
 
 order_path = os.path.join("Files", "Images", "order.gif")
+
+def get_path_to_build_img(id):
+    return f'Files\Images\Buildings\Building{id}.gif'
+
 turtle.register_shape(order_path)
+turtle.register_shape(get_path_to_build_img(1))
+turtle.register_shape(get_path_to_build_img(2))
+turtle.register_shape(get_path_to_build_img(3))
+turtle.register_shape(get_path_to_build_img(4))
+turtle.register_shape(get_path_to_build_img(5))
+turtle.register_shape(get_path_to_build_img(6))
 
-turtle.register_shape('Files\Images\Buildings\Building1.gif')
-turtle.register_shape('Files\Images\Buildings\Building2.gif')
-turtle.register_shape('Files\Images\Buildings\Building3.gif')
-turtle.register_shape('Files\Images\Buildings\Building4.gif')
-turtle.register_shape('Files\Images\Buildings\Building5.gif')
-turtle.register_shape('Files\Images\Buildings\Building6.gif')
-
-buildings_paths = {
-    (90, 90): 'Files\Images\Buildings\Building1.gif',
-    (150, 30): 'Files\Images\Buildings\Building2.gif',
-    (80, 110): 'Files\Images\Buildings\Building3.gif',
-    (150, 100): 'Files\Images\Buildings\Building4.gif',
-    (30, 130): 'Files\Images\Buildings\Building5.gif',
-    (90, 150): 'Files\Images\Buildings\Building6.gif',    
+squares = {
+    81: ((90, 90), get_path_to_build_img(1)),
+    45: ((150, 30), get_path_to_build_img(2)),
+    88: ((80, 110), get_path_to_build_img(3)),
+    150: ((150, 100), get_path_to_build_img(4)),
+    39: ((30, 130), get_path_to_build_img(5)),
+    135: ((90, 150), get_path_to_build_img(6))
 }
 
 class Order:
@@ -35,8 +37,6 @@ class Order:
         self.turtle = turtle.Turtle(shape=order_path)
         self.is_deleted = False
         self.deliver_time = None
-        # self.polygon = Polygon([[self.x - 11, self.y + 11], [self.x + 11, self.y + 11], 
-        #                         [self.x + 11, self.y - 11], [self.x - 11, self.y - 11]])
 
     def draw(self):
         self.turtle.penup()
@@ -63,41 +63,45 @@ class Order:
 
 
 class Barrier:
-    def __init__(self, pos, width, lenght, map_):
+    def __init__(self, pos, square, map_):
         self.pos = pos
         self.pos.x = round_to_fly_points(self.pos.x * BARRIER_KOEF)
         self.pos.y = round_to_fly_points(self.pos.y * BARRIER_KOEF)
         self.pos.z *= BARRIER_KOEF
-        self.width = width * BARRIER_KOEF
-        self.lenght = lenght * BARRIER_KOEF
-        self.turtle = turtle.Turtle()
+        (self.width, self.lenght), self.path_to_img = squares[square]
+        self.turtle = turtle.Turtle(shape=self.path_to_img)
         self.is_deleted = False
         self.polygon = Polygon([[self.pos.x, self.pos.y], [self.pos.x + self.width, self.pos.y], 
                                 [self.pos.x + self.width, self.pos.y - self.lenght], [self.pos.x, self.pos.y - self.lenght]])
         save_obj_to_map(self, map_)
 
     def draw(self):
-            self.turtle.hideturtle()
-            self.turtle.penup()
-            self.turtle.speed(0)
-            self.turtle.setposition(self.pos.get_position())
-            self.turtle.color("black")
-            self.turtle.pendown()
-            self.turtle.begin_fill()
-            for i in range(2):
-                self.turtle.forward(self.width)
-                self.turtle.right(90)
-                self.turtle.forward(self.lenght)
-                if i == 0:
-                    self.turtle.right(90)
-            self.turtle.end_fill()
+        self.turtle.penup()
+        self.turtle.speed(0)
+        self.turtle.setposition(self.get_center_pos())
+            # self.turtle.hideturtle()
+            # self.turtle.penup()
+            # self.turtle.speed(0)
+            # self.turtle.setposition(self.pos.get_position())
+            # self.turtle.color("black")
+            # self.turtle.pendown()
+            # self.turtle.begin_fill()
+            # for i in range(2):
+            #     self.turtle.forward(self.width)
+            #     self.turtle.right(90)
+            #     self.turtle.forward(self.lenght)
+            #     if i == 0:
+            #         self.turtle.right(90)
+            # self.turtle.end_fill()
 
     def get_location(self):
         return self.pos
 
+    def get_center_pos(self):
+        x, y = self.pos.get_position()
+        return (x + self.width / 2, y - self.lenght / 2)
+
     
-
-
 class OrderObstaclesHelper:
     def __init__(self, hive):
         self.__current_order = False
@@ -149,7 +153,7 @@ class OrderObstaclesHelper:
     def update(self):
         for i in range(len(self.orders) - 1, -1, -1):
             if self.orders[i].is_deleted:
-                if time() - self.orders[i].deliver_time > 0.5:
+                if time() - self.orders[i].deliver_time > 1:
                     self.orders[i].turtle.hideturtle()
                     del self.orders[i]
 
