@@ -53,5 +53,5 @@ class DroneHive:
             #best_candidate = self.choose_drone(order)
             #best_candidate.set_state(FlyingState(order))
             #self.orders.remove(order)
-         #for drone in self.__drones:
-             #drone.take_order()
+         for drone in self.__drones:
+             drone.take_order()
