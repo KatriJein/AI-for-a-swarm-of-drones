@@ -33,7 +33,7 @@ class Station:
             self._places_drones[i] = None
         
         self.polygon = Polygon([[self._location.x - ORDER_SIZE, self._location.y - ORDER_SIZE], [self._location.x + self._height + ORDER_SIZE, self._location.y - ORDER_SIZE], 
-                                [self._location.x + self._height + ORDER_SIZE, self._location.y + self._width + ORDER_SIZE], [self._location.x - ORDER_SIZE, self._location.y + self._width + ORDER_SIZE]])
+                                [self._location.x + self._height, self._location.y + self._width], [self._location.x, self._location.y + self._width]])
         self.is_deleted = False
         save_obj_to_map(self, map_)
 

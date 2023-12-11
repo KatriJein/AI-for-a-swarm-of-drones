@@ -13,3 +13,5 @@ class AwaitState(DroneState):
             place_loc = drone.get_station().get_location_place(place_id)
             drone.get_station().set_drone(drone, place_id)
             drone.fly(place_loc)
+        else:
+            drone.take_order()
