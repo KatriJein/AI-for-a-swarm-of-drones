@@ -12,6 +12,7 @@ from Await_State import AwaitState
 from Flying_State import FlyingState
 from Carrying_State import CarryingState
 from Charging_State import ChargingState
+from Wait_For_Help_State import WaitForHelpState
 
 drone_path = os.path.join("Files", "Images", "drone.gif")
 turtle.register_shape(drone_path)
@@ -29,6 +30,7 @@ class Drone:
         self.__station = station
         self.__path = []
         self.__hive = hive
+        self.__partner = None
 
         self.__set_graphics()
 
@@ -130,11 +132,12 @@ class Drone:
         self.__turtle.clear()
         self.__turtle.color(*COLOR_GENERATOR.get_inactive_state_color())
         self.take_order()
+        self.__hive.impossible_orders_check()
 
-    def fly(self, target):
+    def fly(self, target, wait=False):
          if not len(self.__path):
              self.__path = self.build_path(target)
-         self.__state = FlyingState(target)
+         self.__state = FlyingState(target, wait_for_partner=wait)
          self.__turtle.color(self.__active_color)
          self.__turtle.up()
 
@@ -146,22 +149,25 @@ class Drone:
         return None
 
 
-    def carry_to(self, path, shipment):
+    def carry_to(self, path, shipment, carrying_together=False):
         self.__path = path
-        self.__state = CarryingState(shipment)
+        self.__state = CarryingState(shipment, carry_together=carrying_together)
         self.__turtle.down()
 
-    def take_order(self):
+    def take_order(self, together=False):
         orders = self.__hive.orders
         candidates = []
         if isinstance(self.__state, AwaitState) and len(orders) > 0:
             for order in orders:
-                data = self.can_take_order(order)
+                data = self.can_take_order(order, together)
                 if data[0]:
                     candidates.append((order, data[1]))
             if len(candidates) > 0:
                 best_candidate = min(candidates, key=lambda o: o[1])
-                self.__hive.send_order_request(self, best_candidate)
+                if not together:
+                    self.__hive.send_order_request(self, best_candidate)
+                else:
+                    self.__hive.call_for_help(self, best_candidate)
 
     def charge(self):
         self.__battery.charge()
@@ -172,6 +178,12 @@ class Drone:
     def set_location(self, x, y):
         self.__location.x = x
         self.__location.y = y
+    
+    def set_partner(self, drone):
+        self.__partner = drone
+
+    def get_partner(self):
+        return self.__partner
     
     def get_state(self):
         return self.__state
@@ -191,10 +203,10 @@ class Drone:
     def is_full_energy(self):
         return self.__battery.is_full()
     
-    def can_take_order(self, order):
+    def can_take_order(self, order, together=False):
         path_to_order = self.build_path(order)
         path_to_order_dest = self.build_path(order.dest_pos, order.location)
-        carrying_state_simulation = CarryingState(order)
+        carrying_state_simulation = CarryingState(order, carry_together=together)
         possibly_taken_charge = self.calculate_battery_spending(path_to_order, (path_to_order_dest, carrying_state_simulation))
         if self.__battery.get_charge() - possibly_taken_charge >= VERY_LOW_CHARGE:
             #self.__path = path_to_order
@@ -202,7 +214,7 @@ class Drone:
         return (False, -1)
     
     def set_state(self, state):
-        if isinstance(state, (AwaitState, FlyingState, CarryingState, ChargingState)):
+        if isinstance(state, (AwaitState, FlyingState, CarryingState, ChargingState, WaitForHelpState)):
             self.__state = state
 
     def set_order_id(self, order_id):

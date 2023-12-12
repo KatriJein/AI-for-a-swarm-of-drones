@@ -39,6 +39,7 @@ def main_cycle(hive, station):
     while True:
         hive.act()
         hive.draw()
+        #hive.impossible_orders_check()
         station.charge()
         helper.update()
         main_turtle.update()
