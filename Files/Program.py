@@ -17,6 +17,7 @@ def screen_setup():
     main_turtle.setup(WIDTH, HEIGHT)
     main_turtle.setworldcoordinates(START_X, START_Y, WIDTH, HEIGHT)
     main_turtle.cv._rootwindow.resizable(False, False)
+    main_turtle.title("Управление дронами")
     background = Background(main_turtle)
     main_turtle.colormode(255)
     return main_turtle

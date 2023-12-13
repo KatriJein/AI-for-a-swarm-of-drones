@@ -10,5 +10,5 @@ class ChargingState(DroneState):
         if drone.is_full_energy():
             st = drone.get_station()
             st.remove_drone(drone)
-            drone.wait()
+            #drone.wait()
             

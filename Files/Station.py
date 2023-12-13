@@ -2,6 +2,7 @@ import turtle
 from Shared_constants import WIDTH, HEIGHT, STATION_KOEF, ORDER_SIZE
 from Shared_Methods import round_to_fly_points, save_obj_to_map
 from Location import Location
+from Start_Point import StartPoint
 from Charging_State import ChargingState
 from shapely.geometry import Polygon
 
@@ -150,7 +151,7 @@ class Station:
         for k in self._places_drones.keys():
             if self._places_drones[k] == drone.get_id():
                 self._places_drones[k] = None
-        drone.set_location(round_to_fly_points(bounds[0] + (bounds[2] - bounds[0]) / 2), round_to_fly_points(bounds[1] - 10))
+        drone.fly(StartPoint())
     
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from Carrying_State import CarryingState
 from Charging_State import ChargingState
+from Start_Point import StartPoint
 from Wait_For_Help_State import WaitForHelpState
 from Drone_State import DroneState
 from order_obstacles import Order
@@ -25,6 +26,12 @@ class FlyingState(DroneState):
                     else:
                         drone.set_state(WaitForHelpState(path, self.__target))
                     return
+            elif isinstance(self.__target, StartPoint):
+                pos = self.__target.get_position()
+                if (drone.get_location().get_position() == pos):
+                    drone.wait()
+                    return
+
             elif isinstance(self.__target, Location):
                 pos = self.__target.get_position()
                 if (drone.get_location().get_position() == pos):
