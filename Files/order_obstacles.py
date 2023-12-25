@@ -42,16 +42,29 @@ class Order:
         self.turtle.penup()
         self.turtle.speed(0)
         self.turtle.setposition(self.location.get_position())
+        self.text_turtle = turtle.Turtle()
+        self.text_turtle.penup()
+        self.text_turtle.hideturtle()
+        self.text_turtle.speed("fastest")
+        self.text_turtle.color("black")
+        loc = self.location.get_position()
+        text_pos = (loc[0] - 50, loc[1] + 12)
+        self.text_turtle.goto(text_pos)
+        self.text_turtle.write(f'Вес: {round(self.weight / 1000, 1)} кг', font=("Times New Roman", 15, "bold"))
 
     def taken_by_drone(self):
         self.turtle.hideturtle()
+        self.text_turtle.clear()
 
 
     def delivered_by_drone(self):
         self.turtle.speed(0)
         self.turtle.goto(self.dest_pos.get_position()[0], self.dest_pos.get_position()[1])
+        text_pos = (self.dest_pos.get_position()[0] - 50, self.dest_pos.get_position()[1] + 12)
+        self.text_turtle.goto(text_pos)
         self.location = self.dest_pos
         self.turtle.showturtle()
+        self.text_turtle.write(f'Вес: {round(self.weight / 1000, 1)} кг', font=("Times New Roman", 15, "bold"))
         self.is_deleted = True
         self.deliver_time = time()
 
@@ -155,6 +168,7 @@ class OrderObstaclesHelper:
             if self.orders[i].is_deleted:
                 if time() - self.orders[i].deliver_time > 1:
                     self.orders[i].turtle.hideturtle()
+                    self.orders[i].text_turtle.clear()
                     del self.orders[i]
 
 
