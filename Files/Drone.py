@@ -3,7 +3,7 @@ import turtle, os
 from queue import Queue
 
 from Drone_Constants import ID_GENERATOR, COLOR_GENERATOR, BATTERY_CHARGE, FLIGHT_ALTITUDE, DRONE_WIDTH, DRONE_LENGTH
-from Shared_constants import FLY_POINTS_IN_SECOND, VERY_LOW_CHARGE
+from Shared_constants import FLY_POINTS_IN_SECOND, VERY_LOW_CHARGE, HEAVY_ORDER_SIDE
 from Location import Location
 from Battery import Battery
 from Station import Station
@@ -164,6 +164,7 @@ class Drone:
                     candidates.append((order, data[1]))
             if len(candidates) > 0:
                 best_candidate = min(candidates, key=lambda o: o[1])
+                together = together if best_candidate[0].weight <= HEAVY_ORDER_SIDE else True
                 if not together:
                     self.__hive.send_order_request(self, best_candidate)
                 else:

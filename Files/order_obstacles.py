@@ -2,7 +2,7 @@ import turtle, random, os
 from time import time
 from shapely.geometry import Polygon
 from Location import Location
-from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND, ORDER_SIZE, SPAWN_ORDER_TIME, ORDER_PLAN
+from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND, ORDER_SIZE, SPAWN_ORDER_TIME, ORDER_PLAN, MIN_ORDER_SIZE, MAX_ORDER_SIZE
 from Shared_Methods import get_corresponding_location_in_map, round_to_fly_points, save_obj_to_map, create_free_map_coordinates
 from Station import Station
 
@@ -135,7 +135,7 @@ class OrderObstaclesHelper:
         new_order = Order(
             self.find_max_index(),
             Location(start_x, start_y),
-            random.randint(10, 30000),
+            random.randint(MIN_ORDER_SIZE, MAX_ORDER_SIZE),
             Location(dest_x, dest_y)
         )
         self.orders.append(new_order)

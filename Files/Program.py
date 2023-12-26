@@ -69,8 +69,8 @@ if __name__ == "__main__":
     hive = DroneHive(map_)
     helper = OrderObstaclesHelper(hive)
     #первая строчка для ручной установки заказа, вторая для автоматической
-    #turtle.onscreenclick(helper.on_click)
-    helper.start_order_timer()
+    turtle.onscreenclick(helper.on_click)
+    #helper.start_order_timer()
 
     obstacles_setup(helper, st, map_)
     # stations_setup()
