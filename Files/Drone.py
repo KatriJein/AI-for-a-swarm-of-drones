@@ -54,7 +54,7 @@ class Drone:
         self.__turtle.goto(loc)
         text_pos = (loc[0] - 70, loc[1] + 10)
         self.__text_turtle.goto(text_pos)
-        self.__text_turtle.write(f"Id: {self.__id}, charge: {round(self.__battery.get_charge(), 2)}", font=("Times New Roman", 15, "bold"))
+        self.__text_turtle.write(f"Id: {self.__id}, заряд: {round(self.__battery.get_charge(), 2)}", font=("Times New Roman", 15, "bold"))
         
 
     def act(self):
@@ -172,6 +172,9 @@ class Drone:
     def charge(self):
         self.__battery.charge()
 
+    def get_charge(self):
+        return self.__battery.get_charge()
+
     def get_location(self):
         return self.__location
     
@@ -196,6 +199,9 @@ class Drone:
 
     def get_station(self):
         return self.__station
+    
+    def get_hive(self):
+        return self.__hive
 
     def is_low_energy(self):
         return self.__battery.is_low()

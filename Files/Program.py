@@ -1,6 +1,6 @@
 import turtle
-
-from Shared_constants import WIDTH, HEIGHT, PADDING, START_X, START_Y
+import asyncio
+from Shared_constants import WIDTH, HEIGHT, PADDING, START_X, START_Y, DRONES_QUANTITY, TRACER_LEVEL, ORDER_PLAN
 from Location import Location
 
 
@@ -27,23 +27,27 @@ def screen_setup():
 #     st.draw()
 
 def drones_setup(hive):
-    drone = Drone(hive, st)
-    drone1 = Drone(hive, st)
-    drone2 = Drone(hive, st)
-    drone3 = Drone(hive, st)
-    hive.add_drone(drone)
-    hive.add_drone(drone1)
-    hive.add_drone(drone2)
-    hive.add_drone(drone3)
+    for i in range(DRONES_QUANTITY):
+        hive.add_drone(Drone(hive, st))
 
-def main_cycle(hive, station):
-    while True:
+
+async def main_cycle(hive, station):
+    plan_turtle = turtle.Turtle()
+    plan_turtle.hideturtle()
+    plan_turtle.speed("fastest")
+    plan_turtle.color("black")
+    while len(hive.delivered_orders) < ORDER_PLAN or not hive.are_drones_done():
         hive.act()
         hive.draw()
         #hive.impossible_orders_check()
         station.charge()
-        helper.update()
+        task2 = asyncio.create_task(helper.update())
+        await task2
         main_turtle.update()
+        main_turtle.title(f"Управление дронами. Осталось недоставленных посылок: {ORDER_PLAN - len(hive.delivered_orders)}")
+    plan_turtle.clear()
+    main_turtle.title(f"Управление дронами. План выполнен!")
+    plan_turtle.write(f"План выполнен!", font=("Times New Roman", 25, "bold"))
 
 def obstacles_setup(helper, station, map_):
 
@@ -59,19 +63,21 @@ def obstacles_setup(helper, station, map_):
 
 if __name__ == "__main__":
     main_turtle = screen_setup()
-    main_turtle.tracer(10, 0)
+    main_turtle.tracer(TRACER_LEVEL, 0)
     map_ = Map()
     st = Station(map_)
     hive = DroneHive(map_)
     helper = OrderObstaclesHelper(hive)
-    turtle.onscreenclick(helper.on_click)
+    #первая строчка для ручной установки заказа, вторая для автоматической
+    #turtle.onscreenclick(helper.on_click)
+    helper.start_order_timer()
 
     obstacles_setup(helper, st, map_)
     # stations_setup()
     st.draw()
     drones_setup(hive)
     main_turtle.update()
-    main_cycle(hive, st)
+    asyncio.run(main_cycle(hive, st))
 
     main_turtle.mainloop()
 

@@ -17,6 +17,7 @@ class CarryingState(DroneState):
         step = drone.next_move()
         if step is None and drone.get_location().get_position() == self.__target.dest_pos.get_position():
             self.__target.delivered_by_drone()
+            drone.get_hive().delivered_orders.add(self.__target)
             drone.del_order_id()
             drone.set_partner(None)
             drone.wait()

@@ -2,16 +2,23 @@ from Drone import Drone
 from Await_State import AwaitState
 from Flying_State import FlyingState
 from Carrying_State import CarryingState
+from Shared_constants import ORDER_PLAN
 
 class DroneHive:
     def __init__(self, map_):
         self.__drones = []
         self.orders = []
+        self.delivered_orders = set()
         self.map = map_
     
     def add_drone(self, drone):
         if isinstance(drone, Drone):
             self.__drones.append(drone)
+
+    def are_drones_done(self):
+        if len(self.delivered_orders) < ORDER_PLAN:
+            return False
+        return all([isinstance(d.get_state(), AwaitState) for d in self.__drones])
     
     def act(self):
         for drone in self.__drones:
@@ -42,7 +49,7 @@ class DroneHive:
     def call_for_help(self, drone, order_data):
         second_candidate = (None, float("inf"))
         for d in self.__drones:
-            if d.get_id() != drone.get_id():
+            if d.get_id() != drone.get_id() and isinstance(d.get_state(), AwaitState):
                 second_candidate = self.__compare_drones(d, order_data[0], second_candidate, together=True)
         if second_candidate[0] is not None:
             self.orders.remove(order_data[0])
@@ -77,6 +84,8 @@ class DroneHive:
          self.impossible_orders_check()
     
     def impossible_orders_check(self):
-        if len(self.orders) > 0 and all([True for drone in self.__drones if isinstance(drone.get_state(), AwaitState)]):
+        if len(self.orders) > 0:
             for drone in self.__drones:
                 drone.take_order(together=True)
+
+#and all([isinstance(drone.get_state(), AwaitState) for drone in self.__drones])

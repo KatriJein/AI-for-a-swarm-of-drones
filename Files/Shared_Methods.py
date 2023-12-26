@@ -1,4 +1,7 @@
 from Shared_constants import FLY_POINTS_IN_SECOND
+from Shared_constants import WIDTH, HEIGHT, PADDING
+from random import randint
+import turtle
 
 def save_obj_to_map(obj, map_):
         pol_bounds = obj.polygon.bounds
@@ -18,3 +21,21 @@ def get_corresponding_location_in_map(map_, pos):
 
 def round_to_fly_points(value):
     return int(value) - int(value) % FLY_POINTS_IN_SECOND
+
+async def create_free_map_coordinates(helper):
+     while True:
+        x = randint(0 + PADDING, WIDTH - PADDING)
+        y = randint(0 + PADDING, HEIGHT - PADDING)
+        if helper.is_intersects_any_polygon(helper.barriers, x, y):
+             continue
+        break
+     return x, y
+
+def create_text_turtle(position=None):
+    text_turtle = turtle.Turtle()
+    text_turtle.hideturtle()
+    text_turtle.speed("fastest")
+    text_turtle.color("black")
+    if position is not None:
+        text_turtle.goto(position[0], position[1])
+    return text_turtle

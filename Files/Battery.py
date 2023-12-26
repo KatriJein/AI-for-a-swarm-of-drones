@@ -1,4 +1,5 @@
 import math
+from Shared_constants import ENERGY_LEVEL_TO_CHARGE
 USUAL_CHARGE = 100
 LOW_LEVEL_SIDE = 20
 
@@ -10,7 +11,7 @@ class Battery:
         self.__charge -= amount
 
     def is_low(self):
-        return self.__charge < LOW_LEVEL_SIDE
+        return self.__charge < ENERGY_LEVEL_TO_CHARGE
     
     def is_full(self):
         return self.__charge == USUAL_CHARGE

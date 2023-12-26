@@ -2,11 +2,12 @@ import turtle, random, os
 from time import time
 from shapely.geometry import Polygon
 from Location import Location
-from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND, ORDER_SIZE
-from Shared_Methods import get_corresponding_location_in_map, round_to_fly_points, save_obj_to_map
+from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND, ORDER_SIZE, SPAWN_ORDER_TIME, ORDER_PLAN
+from Shared_Methods import get_corresponding_location_in_map, round_to_fly_points, save_obj_to_map, create_free_map_coordinates
 from Station import Station
 
 order_path = os.path.join("Files", "Images", "order.gif")
+plan = ORDER_PLAN
 
 def get_path_to_build_img(id):
     return f'Files\Images\Buildings\Building{id}.gif'
@@ -56,6 +57,9 @@ class Order:
         self.turtle.hideturtle()
         self.text_turtle.clear()
 
+    def untaken_by_drone(self):
+        self.turtle.showturtle()
+        self.text_turtle.write(f'Вес: {round(self.weight / 1000, 1)} кг', font=("Times New Roman", 15, "bold"))
 
     def delivered_by_drone(self):
         self.turtle.speed(0)
@@ -64,7 +68,7 @@ class Order:
         self.text_turtle.goto(text_pos)
         self.location = self.dest_pos
         self.turtle.showturtle()
-        self.text_turtle.write(f'Вес: {round(self.weight / 1000, 1)} кг', font=("Times New Roman", 15, "bold"))
+        #self.text_turtle.write(f'Вес: {round(self.weight / 1000, 1)} кг', font=("Times New Roman", 15, "bold"))
         self.is_deleted = True
         self.deliver_time = time()
 
@@ -123,6 +127,9 @@ class OrderObstaclesHelper:
         self.__hive = hive
         self.barriers = []
         self.orders = []
+        self.__start_timer = False
+        self.__cur_time = 0
+
 
     def generate_new_order(self, start_x, start_y, dest_x, dest_y):
         new_order = Order(
@@ -136,8 +143,28 @@ class OrderObstaclesHelper:
         self.__hive.set_order(new_order)
         
     def create_polygon_for_point(self, x, y):
-        return Polygon([[x - ORDER_SIZE, y + ORDER_SIZE], [x + ORDER_SIZE, y + ORDER_SIZE], 
-                            [x + ORDER_SIZE, y - ORDER_SIZE], [x - ORDER_SIZE, y - ORDER_SIZE]])
+        return Polygon([[x - ORDER_SIZE - FLY_POINTS_IN_SECOND, y + ORDER_SIZE + FLY_POINTS_IN_SECOND], [x + ORDER_SIZE + FLY_POINTS_IN_SECOND, y + ORDER_SIZE + FLY_POINTS_IN_SECOND], 
+                            [x + ORDER_SIZE + FLY_POINTS_IN_SECOND, y - ORDER_SIZE - FLY_POINTS_IN_SECOND], [x - ORDER_SIZE - FLY_POINTS_IN_SECOND, y - ORDER_SIZE - FLY_POINTS_IN_SECOND]])
+
+    def start_order_timer(self):
+        self.__start_timer = True
+        self.__cur_time = time()
+    
+    async def __order_timer_check(self):
+        if not self.__start_timer:
+            return
+        if time() - self.__cur_time >= SPAWN_ORDER_TIME:
+            await self.__spawn_order_automatic()
+            self.__cur_time = time()
+            
+
+    async def __spawn_order_automatic(self):
+        global plan
+        x1, y1 = await create_free_map_coordinates(self)
+        self.on_click(x1, y1)
+        x2, y2 = await create_free_map_coordinates(self)
+        self.on_click(x2, y2)
+
 
     def find_max_index(self):
         return max(order.id for order in self.orders) + 1 if self.orders else 0
@@ -146,14 +173,17 @@ class OrderObstaclesHelper:
         return any(p.polygon.intersects(self.create_polygon_for_point(x, y)) for p in polygons)
 
     def on_click(self, x, y):
-        if x >= 0 and x <= self.__hive.map.x_max and y >= 0 and y <= self.__hive.map.y_max:
-            if not self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
-                self.__curr_x, self.__curr_y = round_to_fly_points(x), round_to_fly_points(y)
-                self.__current_order = True
-            elif self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
-                self.generate_new_order(self.__curr_x, self.__curr_y, round_to_fly_points(x), round_to_fly_points(y))
-                self.__current_order = False 
-                self.__curr_x, self.__curr_y = 0, 0 
+        global plan
+        if plan > 0:
+            if x >= 0 and x <= self.__hive.map.x_max and y >= 0 and y <= self.__hive.map.y_max:
+                if not self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
+                    self.__curr_x, self.__curr_y = round_to_fly_points(x), round_to_fly_points(y)
+                    self.__current_order = True
+                elif self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
+                    self.generate_new_order(self.__curr_x, self.__curr_y, round_to_fly_points(x), round_to_fly_points(y))
+                    self.__current_order = False 
+                    self.__curr_x, self.__curr_y = 0, 0
+                    plan -= 1 
 
     def draw_items(self, arr):
         for item in arr:
@@ -163,7 +193,10 @@ class OrderObstaclesHelper:
                 else:
                     item.draw()
 
-    def update(self):
+    async def update(self):
+        global plan
+        if plan > 0:
+            await self.__order_timer_check()
         for i in range(len(self.orders) - 1, -1, -1):
             if self.orders[i].is_deleted:
                 if time() - self.orders[i].deliver_time > 1:
