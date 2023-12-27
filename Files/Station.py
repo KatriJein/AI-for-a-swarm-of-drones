@@ -11,6 +11,7 @@ turtle.register_shape('Files\Images\poligon.gif')
 class Station:
     def __init__(self, map_):
         self._energy = 10000
+        self._charge_flag = False
         self._width = 4 * STATION_KOEF
         self._height = 8 * STATION_KOEF
         self._location = Location(round_to_fly_points(WIDTH / 2), round_to_fly_points(HEIGHT / 2 + self._height / 2))
@@ -83,8 +84,13 @@ class Station:
 
     def charge(self):
         '''Заряжает станцию, если ее заряд ниже 5 тысяч'''
-        if self.get_energy() < 10000 and self.count_free_places() == self._places_count:
-            self._energy += 0.2
+        if self._charge_flag and self.count_free_places() == self._places_count:
+            if self.get_energy() < 10000:
+                self._energy += 0.2
+                return
+            self._charge_flag = False
+        if  self.get_energy() < 5000 and self.count_free_places() == self._places_count and not self._charge_flag:
+            self._charge_flag = True
 
     def get_energy(self):
         '''Возвращает заряд станции'''
