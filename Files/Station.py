@@ -67,10 +67,24 @@ class Station:
                 t.left(90)
             t.penup()
 
+        self._text_turtle = turtle.Turtle()
+        self._text_turtle.penup()
+        self._text_turtle.hideturtle()
+        self._text_turtle.speed("fastest")
+        self._text_turtle.color("black")
+        loc = self._location.get_position()
+        text_pos = (loc[0] + 13, loc[1] + 70)
+        self._text_turtle.goto(text_pos)
+        self._text_turtle.write(f'Заряд: {round(self.get_energy())}', font=("Times New Roman", 15, "bold"))
+
+    def draw_update(self):
+        self._text_turtle.clear()
+        self._text_turtle.write(f'Заряд: {round(self.get_energy())}', font=("Times New Roman", 15, "bold"))
+
     def charge(self):
         '''Заряжает станцию, если ее заряд ниже 5 тысяч'''
-        if self._energy < 5000:
-            self._energy += 1
+        if self.get_energy() < 10000 and self.count_free_places() == self._places_count:
+            self._energy += 0.2
 
     def get_energy(self):
         '''Возвращает заряд станции'''

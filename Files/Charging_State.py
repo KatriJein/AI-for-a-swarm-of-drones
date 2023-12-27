@@ -6,9 +6,10 @@ class ChargingState(DroneState):
         super().__init__(taken_energy)
 
     def act(self, drone):
-        drone.charge()
+        # drone.charge()
+        st = drone.get_station()
+        st.charge_drone(drone)
         if drone.is_full_energy():
-            st = drone.get_station()
             st.remove_drone(drone)
             #drone.wait()
             

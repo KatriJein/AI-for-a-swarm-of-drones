@@ -39,6 +39,8 @@ async def main_cycle(hive, station):
     while len(hive.delivered_orders) < ORDER_PLAN or not hive.are_drones_done():
         hive.act()
         hive.draw()
+        st.draw_update()
+        st.charge()
         #hive.impossible_orders_check()
         station.charge()
         task2 = asyncio.create_task(helper.update())
