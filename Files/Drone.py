@@ -14,8 +14,12 @@ from Carrying_State import CarryingState
 from Charging_State import ChargingState
 from Wait_For_Help_State import WaitForHelpState
 
-drone_path = os.path.join("Files", "Images", "drone.gif")
-turtle.register_shape(drone_path)
+try:
+    drone_path = os.path.join("_internal", "Images", "drone.gif")
+    turtle.register_shape(drone_path)
+except:
+    drone_path = os.path.join("Files", "Images", "drone.gif")
+    turtle.register_shape(drone_path)
 
 class Drone:
     def __init__(self, hive, station, width=DRONE_WIDTH, length=DRONE_LENGTH):
@@ -35,6 +39,7 @@ class Drone:
         self.__set_graphics()
 
     def __set_graphics(self):
+        global drone_path
         self.__turtle = turtle.Turtle(shape=drone_path)
         self.__text_turtle = turtle.Turtle()
         self.__text_turtle.hideturtle()

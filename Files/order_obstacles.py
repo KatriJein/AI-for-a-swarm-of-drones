@@ -6,36 +6,59 @@ from Shared_constants import WIDTH, HEIGHT, BARRIER_KOEF, FLY_POINTS_IN_SECOND, 
 from Shared_Methods import get_corresponding_location_in_map, round_to_fly_points, save_obj_to_map, create_free_map_coordinates
 from Station import Station
 
-order_path = os.path.join("Files", "Images", "order.gif")
-plan = ORDER_PLAN
+order_path = os.path.join("_internal", "Images", "order.gif")
+plan = 0
 
-def get_path_to_build_img(id):
+def get_path_to_build_img_prod(id):
+    return f'_internal\Images\Buildings\Building{id}.gif'
+
+def get_path_to_build_dev(id):
     return f'Files\Images\Buildings\Building{id}.gif'
 
-turtle.register_shape(order_path)
-turtle.register_shape(get_path_to_build_img(1))
-turtle.register_shape(get_path_to_build_img(2))
-turtle.register_shape(get_path_to_build_img(3))
-turtle.register_shape(get_path_to_build_img(4))
-turtle.register_shape(get_path_to_build_img(5))
-turtle.register_shape(get_path_to_build_img(6))
+def register_shapes(func):
+    turtle.register_shape(func(1))
+    turtle.register_shape(func(2))
+    turtle.register_shape(func(3))
+    turtle.register_shape(func(4))
+    turtle.register_shape(func(5))
+    turtle.register_shape(func(6))
 
-squares = {
-    81: ((90, 90), get_path_to_build_img(1)),
-    45: ((150, 30), get_path_to_build_img(2)),
-    88: ((80, 110), get_path_to_build_img(3)),
-    150: ((150, 100), get_path_to_build_img(4)),
-    39: ((30, 130), get_path_to_build_img(5)),
-    135: ((90, 150), get_path_to_build_img(6))
-}
+    squares = {
+        81: ((90, 90), func(1)),
+        45: ((150, 30), func(2)),
+        88: ((80, 110), func(3)),
+        150: ((150, 100), func(4)),
+        39: ((30, 130), func(5)),
+        135: ((90, 150), func(6))
+    }
+    return squares
+
+try:
+    turtle.register_shape(order_path)
+except:
+    order_path = os.path.join("Files", "Images", "order.gif")
+    turtle.register_shape(order_path)
+squares = {}
+try:
+    func = get_path_to_build_img_prod
+    squares = register_shapes(func)
+except:
+    func = get_path_to_build_dev
+    squares = register_shapes(func)
 
 class Order:
     def __init__(self, id, pos, weight, dest_pos):
+        global order_path
         self.id = id 
         self.location = pos
         self.weight = weight 
         self.dest_pos = dest_pos
-        self.turtle = turtle.Turtle(shape=order_path)
+        self.turtle = None
+        try:
+            self.turtle = turtle.Turtle(shape=order_path)
+        except:
+            order_path = os.path.join("Files", "Images", "order.gif")
+            self.turtle = turtle.Turtle(shape=order_path)
         self.is_deleted = False
         self.deliver_time = None
 
@@ -129,6 +152,8 @@ class OrderObstaclesHelper:
         self.orders = []
         self.__start_timer = False
         self.__cur_time = 0
+        self.__spawn_order_time = SPAWN_ORDER_TIME
+        self.__spawned_counter = 0
 
 
     def generate_new_order(self, start_x, start_y, dest_x, dest_y):
@@ -146,14 +171,34 @@ class OrderObstaclesHelper:
         return Polygon([[x - ORDER_SIZE - FLY_POINTS_IN_SECOND, y + ORDER_SIZE + FLY_POINTS_IN_SECOND], [x + ORDER_SIZE + FLY_POINTS_IN_SECOND, y + ORDER_SIZE + FLY_POINTS_IN_SECOND], 
                             [x + ORDER_SIZE + FLY_POINTS_IN_SECOND, y - ORDER_SIZE - FLY_POINTS_IN_SECOND], [x - ORDER_SIZE - FLY_POINTS_IN_SECOND, y - ORDER_SIZE - FLY_POINTS_IN_SECOND]])
 
+    def get_spawn_time(self):
+        return self.__spawn_order_time
+    
+    def get_spawned_quantity(self):
+        return self.__spawned_counter
+
     def start_order_timer(self):
         self.__start_timer = True
         self.__cur_time = time()
+
+    def stop_order_timer(self):
+        self.__start_timer = False
+
+    def add_spawn_time(self, mode_turtle):
+        self.__spawn_order_time += 1
+        mode_turtle.clear()
+        mode_turtle.write(f"Автоматический режим. Время появления заказа: {self.__spawn_order_time} с.", font=("Times New Roman", 25, "bold"))
+
+    def decrease_spawn_time(self, mode_turtle):
+        if self.__spawn_order_time - 1 >= 1:
+            self.__spawn_order_time -= 1
+            mode_turtle.clear()
+            mode_turtle.write(f"Автоматический режим. Время появления заказа: {self.__spawn_order_time} с.", font=("Times New Roman", 25, "bold"))
     
     async def __order_timer_check(self):
         if not self.__start_timer:
             return
-        if time() - self.__cur_time >= SPAWN_ORDER_TIME:
+        if time() - self.__cur_time >= self.__spawn_order_time:
             await self.__spawn_order_automatic()
             self.__cur_time = time()
             
@@ -174,7 +219,7 @@ class OrderObstaclesHelper:
 
     def on_click(self, x, y):
         global plan
-        if plan > 0:
+        if plan - self.__spawned_counter > 0:
             if x >= 0 and x <= self.__hive.map.x_max and y >= 0 and y <= self.__hive.map.y_max:
                 if not self.__current_order and not self.is_intersects_any_polygon(self.barriers, x, y):
                     self.__curr_x, self.__curr_y = round_to_fly_points(x), round_to_fly_points(y)
@@ -183,6 +228,7 @@ class OrderObstaclesHelper:
                     self.generate_new_order(self.__curr_x, self.__curr_y, round_to_fly_points(x), round_to_fly_points(y))
                     self.__current_order = False 
                     self.__curr_x, self.__curr_y = 0, 0
+                    self.__spawned_counter += 1
                     plan -= 1 
 
     def draw_items(self, arr):
@@ -193,9 +239,10 @@ class OrderObstaclesHelper:
                 else:
                     item.draw()
 
-    async def update(self):
+    async def update(self, supposed_plan):
         global plan
-        if plan > 0:
+        plan = supposed_plan
+        if plan - self.__spawned_counter > 0:
             await self.__order_timer_check()
         for i in range(len(self.orders) - 1, -1, -1):
             if self.orders[i].is_deleted:

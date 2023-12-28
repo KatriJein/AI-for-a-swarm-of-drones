@@ -11,6 +11,17 @@ from screen import Background
 from Station import Station
 from Map import Map
 
+HANDY_MODE = True
+plan = ORDER_PLAN
+
+def add_order_plan():
+    global plan
+    plan += 1
+
+def decrease_order_plan():
+    global plan
+    if plan - helper.get_spawned_quantity() > 1:
+        plan -= 1
 
 def screen_setup():
     main_turtle = turtle.Screen()
@@ -36,18 +47,24 @@ async def main_cycle(hive, station):
     plan_turtle.hideturtle()
     plan_turtle.speed("fastest")
     plan_turtle.color("black")
-    while len(hive.delivered_orders) < ORDER_PLAN or not hive.are_drones_done():
+    while len(hive.delivered_orders) < plan or not hive.are_drones_done(plan):
         hive.act()
         hive.draw()
         st.draw_update()
         st.charge()
         #hive.impossible_orders_check()
         station.charge()
-        task2 = asyncio.create_task(helper.update())
+        task2 = asyncio.create_task(helper.update(plan))
         await task2
         main_turtle.update()
-        main_turtle.title(f"Управление дронами. Осталось недоставленных посылок: {ORDER_PLAN - len(hive.delivered_orders)}")
+        main_turtle.title(f"Управление дронами. Осталось недоставленных посылок: {plan - len(hive.delivered_orders)}")
     plan_turtle.clear()
+    mode_turtle.clear()
+    turtle.onkey(None, 'q')
+    turtle.onkey(None, 's')
+    turtle.onkey(None, 'w')
+    turtle.onkey(None, 't')
+    turtle.onkey(None, 'y')
     main_turtle.title(f"Управление дронами. План выполнен!")
     plan_turtle.write(f"План выполнен!", font=("Times New Roman", 25, "bold"))
 
@@ -63,24 +80,50 @@ def obstacles_setup(helper, station, map_):
     helper.draw_items(helper.barriers)
     helper.draw_items(helper.orders)
 
+def switch_mode():
+    mode_turtle.clear()
+    global HANDY_MODE
+    if HANDY_MODE:
+        turtle.onscreenclick(None)
+        mode_turtle.write(f"Автоматический режим. Время появления заказа: {helper.get_spawn_time()} с.", font=("Times New Roman", 25, "bold"))
+        helper.start_order_timer()
+    else:
+        turtle.onscreenclick(helper.on_click)
+        mode_turtle.write("Ручной режим", font=("Times New Roman", 25, "bold"))
+        helper.stop_order_timer()
+    HANDY_MODE = not HANDY_MODE
+
 if __name__ == "__main__":
-    main_turtle = screen_setup()
-    main_turtle.tracer(TRACER_LEVEL, 0)
-    map_ = Map()
-    st = Station(map_)
-    hive = DroneHive(map_)
-    helper = OrderObstaclesHelper(hive)
-    #первая строчка для ручной установки заказа, вторая для автоматической
-    turtle.onscreenclick(helper.on_click)
-    #helper.start_order_timer()
+    try:
+        main_turtle = screen_setup()
+        main_turtle.tracer(TRACER_LEVEL, 0)
+        map_ = Map()
+        st = Station(map_)
+        hive = DroneHive(map_)
+        helper = OrderObstaclesHelper(hive)
+        mode_turtle = turtle.Turtle()
+        mode_turtle.hideturtle()
+        mode_turtle.speed("fastest")
+        mode_turtle.color("black")
+        turtle.onscreenclick(helper.on_click)
+        mode_turtle.write("Ручной режим", font=("Times New Roman", 25, "bold"))
+        turtle.listen()
+        turtle.onkey(switch_mode, 'q')
+        turtle.onkey(lambda: helper.add_spawn_time(mode_turtle), 's')
+        turtle.onkey(lambda: helper.decrease_spawn_time(mode_turtle), 'w')
+        turtle.onkey(add_order_plan, 't')
+        turtle.onkey(decrease_order_plan, 'y')
 
-    obstacles_setup(helper, st, map_)
-    # stations_setup()
-    st.draw()
-    drones_setup(hive)
-    main_turtle.update()
-    asyncio.run(main_cycle(hive, st))
 
-    main_turtle.mainloop()
+        obstacles_setup(helper, st, map_)
+        # stations_setup()
+        st.draw()
+        drones_setup(hive)
+        main_turtle.update()
+        asyncio.run(main_cycle(hive, st))
+
+        main_turtle.mainloop()
+    except Exception as e:
+        print(e)
 
 

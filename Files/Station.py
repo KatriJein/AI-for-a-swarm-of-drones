@@ -6,7 +6,10 @@ from Start_Point import StartPoint
 from Charging_State import ChargingState
 from shapely.geometry import Polygon
 
-turtle.register_shape('Files\Images\poligon.gif')
+try:
+    turtle.register_shape('_internal\Images\poligon.gif')
+except:
+     turtle.register_shape('Files\Images\poligon.gif')
 
 class Station:
     def __init__(self, map_):
@@ -55,7 +58,10 @@ class Station:
     def draw(self):
         '''Отрисовка станции'''
         t = turtle.Turtle()
-        t.shape('Files\Images\poligon.gif')
+        try:
+            t.shape('_internal\Images\poligon.gif')
+        except:
+             t.shape('Files\Images\poligon.gif')
         t.hideturtle()
         t.penup()
         t.speed(0)

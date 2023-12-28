@@ -15,8 +15,8 @@ class DroneHive:
         if isinstance(drone, Drone):
             self.__drones.append(drone)
 
-    def are_drones_done(self):
-        if len(self.delivered_orders) < ORDER_PLAN:
+    def are_drones_done(self, plan):
+        if len(self.delivered_orders) < plan:
             return False
         return all([isinstance(d.get_state(), AwaitState) for d in self.__drones])
     
